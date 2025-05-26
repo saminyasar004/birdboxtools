@@ -1,0 +1,80 @@
+.bg-images {
+	background-image: url('./assets/StatitsticCard.png');
+	background-repeat: no-repeat;
+}
+
+.ql-container.ql-snow {
+	border: 1px solid rgba(34, 34, 34, 0.2) !important;
+	border-radius: 10px !important;
+}
+
+.ql-toolbar.ql-snow {
+	border: none !important;
+	display: flex !important;
+	justify-content: end;
+}
+
+.background_color {
+	background-color: rgba(201, 160, 56, 1);
+}
+.box-shadow {
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px,
+		rgba(0, 0, 0, 0.22) 0px 10px 10px;
+}
+
+.bg-image-clip {
+	background-image: url('./assets/clipard.svg');
+	background-repeat: no-repeat;
+}
+.rich-text-container {
+	all: unset; /* Reset all inherited styles */
+}
+
+.page_not_found {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+.loader {
+	width: 20px;
+	height: 20px;
+	border: 5px solid #fff;
+	border-bottom-color: transparent;
+	border-radius: 50%;
+	display: inline-block;
+	box-sizing: border-box;
+	animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* For Webkit browsers (Chrome, Safari) */
+.scroll::-webkit-scrollbar {
+	width: 6px; /* Makes scrollbar thinner (default is usually 12-17px) */
+	height: 6px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+	background: #888; /* Scrollbar color */
+	border-radius: 3px;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+	background: #555; /* Hover color */
+}
+
+/* For Firefox */
+.scroll {
+	scrollbar-width: thin; /* Makes scrollbar thinner */
+	scrollbar-color: #888 transparent; /* thumb color, track color */
+}
