@@ -213,6 +213,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+dist/*
+dist*
+
 ### yarn ###
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 
