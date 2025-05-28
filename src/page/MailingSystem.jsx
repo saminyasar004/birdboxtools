@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaSearch } from 'react-icons/fa';
-import { IoArrowForward } from 'react-icons/io5';
-import { MdArrowBack } from 'react-icons/md';
-import { PiDotsThreeVerticalBold } from 'react-icons/pi';
-import SeminarHeader from './SeminarHeader';
-import axiosInstance from '../component/axiosInstance';
+import React, { useState, useEffect, useRef } from "react";
+import { FaSearch } from "react-icons/fa";
+import { IoArrowForward } from "react-icons/io5";
+import { MdArrowBack } from "react-icons/md";
+import { PiDotsThreeVerticalBold } from "react-icons/pi";
+import SeminarHeader from "./SeminarHeader";
+import axiosInstance from "../component/axiosInstance";
 
 const MailingSystem = ({ item }) => {
 	const [participants, setParticipants] = useState([]);
@@ -28,7 +28,7 @@ const MailingSystem = ({ item }) => {
 				}
 				setLoading(false);
 			} catch (err) {
-				setError('Failed to fetch participants');
+				setError("Failed to fetch participants");
 				setLoading(false);
 			}
 		};
@@ -39,14 +39,17 @@ const MailingSystem = ({ item }) => {
 	// Handle outside click to close dropdown
 	useEffect(() => {
 		const handleClickOutside = (event) => {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(event.target)
+			) {
 				setIsOpen(false);
 			}
 		};
 
-		document.addEventListener('mousedown', handleClickOutside);
+		document.addEventListener("mousedown", handleClickOutside);
 		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
+			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, []);
 
@@ -56,13 +59,15 @@ const MailingSystem = ({ item }) => {
 	};
 
 	// Handle search filtering
-	const [searchQuery, setSearchQuery] = useState('');
+	const [searchQuery, setSearchQuery] = useState("");
 	const filteredParticipants = participants.filter(
 		(participant) =>
 			participant.first_name
 				.toLowerCase()
 				.includes(searchQuery.toLowerCase()) ||
-			participant.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			participant.last_name
+				.toLowerCase()
+				.includes(searchQuery.toLowerCase()) ||
 			participant.id.toString().includes(searchQuery)
 	);
 
@@ -88,18 +93,18 @@ const MailingSystem = ({ item }) => {
 	// Handle sending email for selected participant
 	const handleSendEmail = async () => {
 		if (!selectedParticipant) {
-			alert('No participant selected');
+			alert("No participant selected");
 			return;
 		}
 		setIsSending(true);
 		try {
-			await axiosInstance.post('/dashboard/send_assessment/', {
+			await axiosInstance.post("/dashboard/send_assessment/", {
 				participants_id: selectedParticipant.id.toString(),
 				seminar_id: item.id.toString(),
 			});
-			alert('Email sent successfully!');
+			alert("Email sent successfully!");
 		} catch (err) {
-			alert('Failed to send email');
+			alert("Failed to send email");
 		} finally {
 			setIsSending(false);
 			setIsOpen(false); // Close dropdown after sending
@@ -110,12 +115,12 @@ const MailingSystem = ({ item }) => {
 	const handleSendAllEmails = async () => {
 		setIsSending(true);
 		try {
-			await axiosInstance.post('/dashboard/send_assessment/', {
+			await axiosInstance.post("/dashboard/send_assessment/", {
 				seminar_id: item.id.toString(),
 			});
-			alert('Emails sent to all participants successfully!');
+			alert("Emails sent to all participants successfully!");
 		} catch (err) {
-			alert('Failed to send emails');
+			alert("Failed to send emails");
 		} finally {
 			setIsSending(false);
 			setIsOpen(false); // Close dropdown after sending
@@ -139,14 +144,16 @@ const MailingSystem = ({ item }) => {
 			{/* Loading Overlay */}
 			{isSending && (
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="text-white text-xl font-bold">Sending...</div>
+					<div className="text-white text-xl font-bold">
+						Sending...
+					</div>
 				</div>
 			)}
 
 			{/* Header Section */}
 			<SeminarHeader
-				button_name={'Start Mailing'}
-				active={'Start Mailing'}
+				button_name={"Start Mailing"}
+				active={"Start Mailing"}
 				data={item}
 			/>
 			<div className="p-4 flex justify-between items-center">
@@ -182,20 +189,34 @@ const MailingSystem = ({ item }) => {
 					<div className="w-1/4">
 						<table className="w-full text-left">
 							<tbody>
-								{filteredParticipants.map((participant, index) => (
-									<tr
-										key={participant.id}
-										className={`cursor-pointer ${
-											selectedParticipant?.id === participant.id
-												? 'bg-gray-700'
-												: 'hover:bg-gray-700'
-										}`}
-										onClick={() => handleParticipantClick(participant)}>
-										<td className="py-2">{participant.id}</td>
-										<td className="py-2">{participant.first_name}</td>
-										<td className="py-2">{participant.last_name}</td>
-									</tr>
-								))}
+								{filteredParticipants.map(
+									(participant, index) => (
+										<tr
+											key={participant.id}
+											className={`cursor-pointer ${
+												selectedParticipant?.id ===
+												participant.id
+													? "bg-gray-700"
+													: "hover:bg-gray-700"
+											}`}
+											onClick={() =>
+												handleParticipantClick(
+													participant
+												)
+											}
+										>
+											<td className="py-2">
+												{participant.id}
+											</td>
+											<td className="py-2">
+												{participant.first_name}
+											</td>
+											<td className="py-2">
+												{participant.last_name}
+											</td>
+										</tr>
+									)
+								)}
 							</tbody>
 						</table>
 					</div>
@@ -206,24 +227,39 @@ const MailingSystem = ({ item }) => {
 							<button className="py-2 rounded flex items-center gap-3">
 								<MdArrowBack /> Back
 							</button>
-							<div className="relative flex items-center" ref={dropdownRef}>
+							<div
+								className="relative flex items-center"
+								ref={dropdownRef}
+							>
 								<button
+									// onClick={handleSendEmail}
 									onClick={() => setIsOpen(!isOpen)}
-									className="px-3 py-2 rounded">
-									<PiDotsThreeVerticalBold size={23} />
+									className="bg-blue-900 hover:bg-blue-700 w-full flex items-start px-4 py-1 rounded-md text-white font-semibold"
+									disabled={isSending}
+								>
+									Send
 								</button>
+
+								{/* <button
+									onClick={() => setIsOpen(!isOpen)}
+									className="px-3 py-2 rounded"
+								>
+									<PiDotsThreeVerticalBold size={23} />
+								</button> */}
 								{isOpen && (
 									<div className="absolute top-12 z-50 -left-12 shadow-md px-2 py-3 w-[9vw] bg-[#141414] flex flex-col items-start">
 										<button
 											onClick={handleSendEmail}
 											className="hover:bg-blue-900 w-full flex items-start px-1"
-											disabled={isSending}>
+											disabled={isSending}
+										>
 											Send
 										</button>
 										<button
 											onClick={handleSendAllEmails}
 											className="hover:bg-blue-900 flex items-start w-full px-1"
-											disabled={isSending}>
+											disabled={isSending}
+										>
 											Send to all Mails
 										</button>
 									</div>
@@ -249,7 +285,7 @@ const MailingSystem = ({ item }) => {
 								</label>
 								<input
 									type="text"
-									value={selectedParticipant?.email || ''}
+									value={selectedParticipant?.email || ""}
 									readOnly
 									className="w-full bg-[#28282A] rounded text-t_color"
 								/>
@@ -258,7 +294,9 @@ const MailingSystem = ({ item }) => {
 							<div className="mb-4">
 								<textarea
 									className="w-full bg-[#28282A] rounded text-t_color h-[20rem] outline-none resize-none"
-									value={selectedParticipant?.email_body || ''}
+									value={
+										selectedParticipant?.email_body || ""
+									}
 									readOnly
 								/>
 							</div>
@@ -270,8 +308,10 @@ const MailingSystem = ({ item }) => {
 								onClick={handlePrevious}
 								disabled={
 									!selectedParticipant ||
-									participants[0]?.id === selectedParticipant.id
-								}>
+									participants[0]?.id ===
+										selectedParticipant.id
+								}
+							>
 								<MdArrowBack /> Previous
 							</button>
 							<button
@@ -279,9 +319,10 @@ const MailingSystem = ({ item }) => {
 								onClick={handleNext}
 								disabled={
 									!selectedParticipant ||
-									participants[participants.length - 1]?.id ===
-										selectedParticipant.id
-								}>
+									participants[participants.length - 1]
+										?.id === selectedParticipant.id
+								}
+							>
 								Next <IoArrowForward />
 							</button>
 						</div>
