@@ -273,6 +273,7 @@ const Sidebar = ({ children, title }) => {
 					<ul className="space-y-2 font-medium mt-10">
 						<li>
 							<Link
+								onClick={() => window.location.reload()}
 								to="/home"
 								className={`flex items-center p-2 rounded-lg group ${
 									location.pathname === "/home"
