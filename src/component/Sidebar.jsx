@@ -130,7 +130,7 @@ const Sidebar = ({ children, title }) => {
 											setIsNotification(false);
 										}}
 									>
-										<div className="rounded-full w-8 h-8 aspect-square object-cover  border flex items-center justify-center text-xl uppercase  ">
+										<div className="rounded-full w-8 h-8 aspect-square object-cover  border flex items-center justify-center text-xl uppercase overflow-hidden">
 											{userImage ? (
 												<img
 													src={userImage}
@@ -273,7 +273,11 @@ const Sidebar = ({ children, title }) => {
 					<ul className="space-y-2 font-medium mt-10">
 						<li>
 							<Link
-								onClick={() => window.location.reload()}
+								onClick={() => {
+									if (location.pathname === "/home") {
+										window.location.reload();
+									}
+								}}
 								to="/home"
 								className={`flex items-center p-2 rounded-lg group ${
 									location.pathname === "/home"
@@ -292,9 +296,9 @@ const Sidebar = ({ children, title }) => {
 						{role === "admin" && (
 							<li>
 								<Link
-									to="/CoachList"
+									to="/coachlist"
 									className={`flex items-center p-2 rounded-lg group ${
-										location.pathname === "/CoachList"
+										location.pathname === "/coachlist"
 											? "bg-[#163B76] text-t_color"
 											: "text-t_color hover:bg-blue-900"
 									}`}

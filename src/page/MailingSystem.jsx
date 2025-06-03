@@ -7,13 +7,19 @@ import SeminarHeader from "./SeminarHeader";
 import axiosInstance from "../component/axiosInstance";
 
 const MailingSystem = ({ item }) => {
+	if (!item?.id) {
+		return window.location.reload("/");
+	}
 	const [participants, setParticipants] = useState([]);
 	const [selectedParticipant, setSelectedParticipant] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [isSending, setIsSending] = useState(false); // New state for sending emails
-	const dropdownRef = useRef(null); // Ref for dropdown
+	const [isSending, setIsSending] = useState(false);
+	const dropdownRef = useRef(null);
+	const [assessmentDay, setAssessmentDay] = useState("one");
+	const [isMailBodyEdited, setIsMailBodyEdited] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	// Fetch participants from the API
 	useEffect(() => {
@@ -46,20 +52,18 @@ const MailingSystem = ({ item }) => {
 				setIsOpen(false);
 			}
 		};
-
 		document.addEventListener("mousedown", handleClickOutside);
-		return () => {
+		return () =>
 			document.removeEventListener("mousedown", handleClickOutside);
-		};
 	}, []);
 
 	// Handle participant selection
 	const handleParticipantClick = (participant) => {
 		setSelectedParticipant(participant);
+		setIsMailBodyEdited(false); // Reset edited flag when selecting a new participant
 	};
 
 	// Handle search filtering
-	const [searchQuery, setSearchQuery] = useState("");
 	const filteredParticipants = participants.filter(
 		(participant) =>
 			participant.first_name
@@ -78,6 +82,7 @@ const MailingSystem = ({ item }) => {
 		);
 		if (currentIndex > 0) {
 			setSelectedParticipant(participants[currentIndex - 1]);
+			setIsMailBodyEdited(false);
 		}
 	};
 
@@ -87,7 +92,21 @@ const MailingSystem = ({ item }) => {
 		);
 		if (currentIndex < participants.length - 1) {
 			setSelectedParticipant(participants[currentIndex + 1]);
+			setIsMailBodyEdited(false);
 		}
+	};
+
+	// Update email body in participants array
+	const updateParticipantEmailBody = (participantId, field, value) => {
+		setParticipants((prev) =>
+			prev.map((p) =>
+				p.id === participantId ? { ...p, [field]: value } : p
+			)
+		);
+		setSelectedParticipant((prev) => ({
+			...prev,
+			[field]: value,
+		}));
 	};
 
 	// Handle sending email for selected participant
@@ -98,16 +117,21 @@ const MailingSystem = ({ item }) => {
 		}
 		setIsSending(true);
 		try {
-			await axiosInstance.post("/dashboard/send_assessment/", {
+			const payload = {
 				participants_id: selectedParticipant.id.toString(),
 				seminar_id: item.id.toString(),
-			});
+				assessment_number: assessmentDay,
+			};
+			if (isMailBodyEdited) {
+				payload.assessment_number = assessmentDay;
+			}
+			await axiosInstance.post("/dashboard/send_assessment/", payload);
 			alert("Email sent successfully!");
 		} catch (err) {
 			alert("Failed to send email");
 		} finally {
 			setIsSending(false);
-			setIsOpen(false); // Close dropdown after sending
+			setIsOpen(false);
 		}
 	};
 
@@ -117,13 +141,46 @@ const MailingSystem = ({ item }) => {
 		try {
 			await axiosInstance.post("/dashboard/send_assessment/", {
 				seminar_id: item.id.toString(),
+				assessment_number: assessmentDay,
 			});
 			alert("Emails sent to all participants successfully!");
 		} catch (err) {
 			alert("Failed to send emails");
 		} finally {
 			setIsSending(false);
-			setIsOpen(false); // Close dropdown after sending
+			setIsOpen(false);
+		}
+	};
+
+	// Handle saving email body
+	const handleSave = async () => {
+		if (!selectedParticipant) {
+			alert("No participant selected");
+			return;
+		}
+		try {
+			const payload = {
+				assessment_number: assessmentDay,
+				[assessmentDay === "one" ? "email_body" : "email_body_two"]:
+					assessmentDay === "one"
+						? selectedParticipant.email_body || ""
+						: selectedParticipant.email_body_two || "",
+			};
+			const response = await axiosInstance.put(
+				`/dashboard/get_assessment/${selectedParticipant.id}/`,
+				payload
+			);
+
+			console.log("Response: ", response);
+
+			if (response.status === 200) {
+				alert("Email body saved successfully!");
+			} else {
+				alert("Failed to save email body");
+			}
+		} catch (err) {
+			console.error("Error on saving: ", err);
+			alert("Failed to save email body");
 		}
 	};
 
@@ -141,7 +198,6 @@ const MailingSystem = ({ item }) => {
 
 	return (
 		<div className="min-h-screen px-10 bg-[#1E1E1E] text-t_color relative">
-			{/* Loading Overlay */}
 			{isSending && (
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 					<div className="text-white text-xl font-bold">
@@ -150,7 +206,6 @@ const MailingSystem = ({ item }) => {
 				</div>
 			)}
 
-			{/* Header Section */}
 			<SeminarHeader
 				button_name={"Start Mailing"}
 				active={"Start Mailing"}
@@ -158,10 +213,14 @@ const MailingSystem = ({ item }) => {
 			/>
 			<div className="p-4 flex justify-between items-center">
 				<h2 className="text-lg font-bold">Mailing system</h2>
-				<span className="text-gray-400">Nathan Bird</span>
+				<span className="text-gray-400">
+					{selectedParticipant?.first_name +
+						" " +
+						selectedParticipant?.last_name}
+				</span>
 			</div>
 			<div className="flex flex-col w-full justify-between">
-				<div className="flex items-center justify-between py-3 bg-[#232325]">
+				<div className="w-full flex items-center justify-between py-3 bg-[#232325]">
 					<table className="table">
 						<thead>
 							<tr>
@@ -171,6 +230,20 @@ const MailingSystem = ({ item }) => {
 							</tr>
 						</thead>
 					</table>
+					<div className="flex items-center gap-2">
+						<p className="text-gray-400">Select Day:</p>
+						<select
+							className="bg-[#1E1E1F] text-white p-2 rounded"
+							value={assessmentDay}
+							onChange={(e) => {
+								setAssessmentDay(e.target.value);
+								setIsMailBodyEdited(false); // Reset edited flag when changing assessment day
+							}}
+						>
+							<option value="one">Assessment 1</option>
+							<option value="two">Assessment 2</option>
+						</select>
+					</div>
 					<div className="flex items-center px-5 mr-4 rounded-md py-3 bg-[#1C1C1D]">
 						<input
 							type="text"
@@ -183,45 +256,38 @@ const MailingSystem = ({ item }) => {
 					</div>
 				</div>
 
-				{/* Main Layout */}
 				<div className="flex justify-between px-5 py-5">
-					{/* Sidebar */}
 					<div className="w-1/4">
 						<table className="w-full text-left">
 							<tbody>
-								{filteredParticipants.map(
-									(participant, index) => (
-										<tr
-											key={participant.id}
-											className={`cursor-pointer ${
-												selectedParticipant?.id ===
-												participant.id
-													? "bg-gray-700"
-													: "hover:bg-gray-700"
-											}`}
-											onClick={() =>
-												handleParticipantClick(
-													participant
-												)
-											}
-										>
-											<td className="py-2">
-												{participant.id}
-											</td>
-											<td className="py-2">
-												{participant.first_name}
-											</td>
-											<td className="py-2">
-												{participant.last_name}
-											</td>
-										</tr>
-									)
-								)}
+								{filteredParticipants.map((participant) => (
+									<tr
+										key={participant.id}
+										className={`cursor-pointer ${
+											selectedParticipant?.id ===
+											participant.id
+												? "bg-gray-700"
+												: "hover:bg-gray-700"
+										}`}
+										onClick={() =>
+											handleParticipantClick(participant)
+										}
+									>
+										<td className="py-2">
+											{participant.id}
+										</td>
+										<td className="py-2">
+											{participant.first_name}
+										</td>
+										<td className="py-2">
+											{participant.last_name}
+										</td>
+									</tr>
+								))}
 							</tbody>
 						</table>
 					</div>
 
-					{/* Main Content */}
 					<div className="w-[70%] p-4 bg-[#28282A]">
 						<div className="flex justify-between mb-4">
 							<button className="py-2 rounded flex items-center gap-3">
@@ -232,20 +298,12 @@ const MailingSystem = ({ item }) => {
 								ref={dropdownRef}
 							>
 								<button
-									// onClick={handleSendEmail}
 									onClick={() => setIsOpen(!isOpen)}
-									className="bg-blue-900 hover:bg-blue-700 w-full flex items-start px-4 py-1 rounded-md text-white font-semibold"
+									className="bg-blue-900 hover:bg-blue-700 px-4 py-1 rounded-md text-white font-semibold"
 									disabled={isSending}
 								>
 									Send
 								</button>
-
-								{/* <button
-									onClick={() => setIsOpen(!isOpen)}
-									className="px-3 py-2 rounded"
-								>
-									<PiDotsThreeVerticalBold size={23} />
-								</button> */}
 								{isOpen && (
 									<div className="absolute top-12 z-50 -left-12 shadow-md px-2 py-3 w-[9vw] bg-[#141414] flex flex-col items-start">
 										<button
@@ -273,12 +331,11 @@ const MailingSystem = ({ item }) => {
 								</label>
 								<input
 									type="text"
-									value="birdbox@example.com"
+									value="info@birdboxtools.com"
 									readOnly
 									className="w-full bg-[#28282A] rounded text-t_color"
 								/>
 							</div>
-
 							<div className="mb-4 flex items-center gap-6 border-b border-[#2E2E30]">
 								<label className="block text-sm font-bold mb-2 w-[10vw]">
 									To
@@ -290,40 +347,72 @@ const MailingSystem = ({ item }) => {
 									className="w-full bg-[#28282A] rounded text-t_color"
 								/>
 							</div>
-
 							<div className="mb-4">
-								<textarea
-									className="w-full bg-[#28282A] rounded text-t_color h-[20rem] outline-none resize-none"
-									value={
-										selectedParticipant?.email_body || ""
-									}
-									readOnly
-								/>
+								{selectedParticipant[
+									assessmentDay === "one"
+										? "email_body"
+										: "email_body_two"
+								] ? (
+									<textarea
+										className="w-full bg-[#28282A] rounded text-t_color h-[20rem] outline-none resize-none"
+										value={
+											assessmentDay === "one"
+												? selectedParticipant?.email_body ||
+												  ""
+												: selectedParticipant?.email_body_two ||
+												  ""
+										}
+										onChange={(e) => {
+											const field =
+												assessmentDay === "one"
+													? "email_body"
+													: "email_body_two";
+											updateParticipantEmailBody(
+												selectedParticipant.id,
+												field,
+												e.target.value
+											);
+											setIsMailBodyEdited(true);
+										}}
+									/>
+								) : (
+									<p className="text-center text-sm">
+										No assessment created
+									</p>
+								)}
 							</div>
 						</div>
-
-						<div className="flex justify-center items-center gap-3">
+						<div className="flex items-center justify-between">
+							<div className="flex justify-center items-center gap-3">
+								<button
+									className="px-4 py-2 flex items-center justify-center gap-3 rounded border border-[#BDC5DB]"
+									onClick={handlePrevious}
+									disabled={
+										!selectedParticipant ||
+										participants[0]?.id ===
+											selectedParticipant.id
+									}
+								>
+									<MdArrowBack /> Previous
+								</button>
+								<button
+									className="px-4 py-2 flex items-center justify-center gap-3 rounded border border-[#BDC5DB]"
+									onClick={handleNext}
+									disabled={
+										!selectedParticipant ||
+										participants[participants.length - 1]
+											?.id === selectedParticipant.id
+									}
+								>
+									Next <IoArrowForward />
+								</button>
+							</div>
 							<button
-								className="px-4 py-2 flex items-center justify-center gap-3 rounded border border-[#BDC5DB]"
-								onClick={handlePrevious}
-								disabled={
-									!selectedParticipant ||
-									participants[0]?.id ===
-										selectedParticipant.id
-								}
+								onClick={handleSave}
+								className="bg-blue-900 hover:bg-blue-700 px-4 py-1 rounded-md text-white font-semibold"
+								disabled={!isMailBodyEdited}
 							>
-								<MdArrowBack /> Previous
-							</button>
-							<button
-								className="px-4 py-2 flex items-center justify-center gap-3 rounded border border-[#BDC5DB]"
-								onClick={handleNext}
-								disabled={
-									!selectedParticipant ||
-									participants[participants.length - 1]
-										?.id === selectedParticipant.id
-								}
-							>
-								Next <IoArrowForward />
+								Save
 							</button>
 						</div>
 					</div>

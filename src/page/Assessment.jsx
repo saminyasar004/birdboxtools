@@ -53,10 +53,10 @@ const Assessment = ({ item }) => {
 
 	// Handle participant click with assessment check
 	const handleParticipantClick = (participant) => {
-		if (participant.assessment_one && participant.assessment_two) {
-			alert("This user already has assessments completed.");
-			return;
-		}
+		// if (participant.assessment_one && participant.assessment_two) {
+		// 	alert("This user already has assessments completed.");
+		// 	return;
+		// }
 		setSelectedParticipant(participant);
 	};
 	const handlePrevious = () => {
@@ -89,21 +89,37 @@ const Assessment = ({ item }) => {
 			{/* Controls Section */}
 			<div className="flex items-center justify-between bg-[#28282A] mb-4 py-3 px-2 rounded-md">
 				<h2 className="text-lg font-bold pl-2">ASSESSMENTS</h2>
-				<div className="flex items-center gap-2">
-					<p className="text-gray-400">Select Language:</p>
-					<select
-						className="bg-[#1E1E1F] text-white p-2 rounded"
-						value={selectLanguage}
-						onChange={(e) => setSelectLanguage(e.target.value)}
-					>
-						<option value="english">English</option>
-						<option value="spanish">Spanish</option>
-						<option value="french">French</option>
-						<option value="german">German</option>
-						<option value="italian">Italian</option>
-						<option value="portuguese">Portuguese</option>
-					</select>
+
+				<div className="flex items-center justify-center gap-5">
+					<div className="flex items-center gap-2">
+						<p className="text-gray-400">Select Language:</p>
+						<select
+							className="bg-[#1E1E1F] text-white p-2 rounded"
+							value={selectLanguage}
+							onChange={(e) => setSelectLanguage(e.target.value)}
+						>
+							<option value="english">English</option>
+							<option value="spanish">Spanish</option>
+							<option value="french">French</option>
+							<option value="german">German</option>
+							<option value="italian">Italian</option>
+							<option value="portuguese">Portuguese</option>
+						</select>
+					</div>
+
+					{/* <div className="flex items-center gap-2">
+						<p className="text-gray-400">Select Day:</p>
+						<select
+							className="bg-[#1E1E1F] text-white p-2 rounded"
+							value={selectLanguage}
+							onChange={(e) => setSelectLanguage(e.target.value)}
+						>
+							<option value="assessment1">Assessment 1</option>
+							<option value="assessment1">Assessment 2</option>
+						</select>
+					</div> */}
 				</div>
+
 				<div className="relative w-[13vw] bg-[#1E1E1F] rounded">
 					<input
 						type="text"

@@ -14,6 +14,8 @@ const Assessmendivetail = ({
 }) => {
 	console.log("participants[0]?.id", participants);
 
+	const [assessmentDay, setAssessmentDay] = useState("one");
+
 	// Initial data structure
 	const initialData = {
 		name: participant?.first_name || "Simone",
@@ -731,6 +733,7 @@ const Assessmendivetail = ({
 		console.log("Form Data:", JSON.stringify(assessmentData));
 		formData.append("assessment", JSON.stringify(assessmentData));
 		formData.append("language", selectLanguage);
+		formData.append("assessment_number", assessmentDay);
 		if (imageFile) {
 			formData.append("profile_image", imageFile);
 		}
@@ -766,30 +769,47 @@ const Assessmendivetail = ({
 			<div className="flex flex-col lg:flex-row bg-[#28282A] shadow-lg border border-gray-700">
 				{/* Left Profile Section */}
 				<div className="w-full 2xl:w-1/3 bg-[#28282A] rounded-t lg:rounded-l">
-					<div className="flex flex-row items-center border border-[#3E3E3E] justify-center gap-4 py-6">
-						<label className="cursor-pointer">
-							<input
-								type="file"
-								accept="image/*"
-								onChange={handleImageUpload}
-								className="hidden"
-								required
-							/>
-							<img
-								src={profileImage}
-								alt="Profile"
-								className="w-24 h-24 rounded-full mb-2 object-cover"
-							/>
-						</label>
-						<div className="text-center">
-							<h3 className="text-lg text-[#B0B4BF] text-[15px]">
-								Name
-							</h3>
-							<p className="text-[#B0B4BF] text-[15px]">
-								{initialData.name}
-							</p>
+					<div className="w-full flex justify-between items-center  border border-[#3E3E3E] px-4">
+						<div className="flex flex-row items-center justify-center gap-4 py-6">
+							<label className="cursor-pointer">
+								<input
+									type="file"
+									accept="image/*"
+									onChange={handleImageUpload}
+									className="hidden"
+									required
+								/>
+								<img
+									src={profileImage}
+									alt="Profile"
+									className="w-24 h-24 rounded-full mb-2 object-cover"
+								/>
+							</label>
+							<div className="">
+								<h3 className="text-lg text-[#B0B4BF] text-[15px]">
+									Name
+								</h3>
+								<p className="text-[#B0B4BF] text-[15px]">
+									{initialData.name}
+								</p>
+							</div>
+						</div>
+
+						<div className="flex flex-col items-start gap-2">
+							<p className="text-gray-400">Select Day:</p>
+							<select
+								className="bg-[#1E1E1F] text-white p-2 rounded"
+								value={assessmentDay}
+								onChange={(e) =>
+									setAssessmentDay(e.target.value)
+								}
+							>
+								<option value="one">Assessment 1</option>
+								<option value="two">Assessment 2</option>
+							</select>
 						</div>
 					</div>
+
 					<div className="border-l border-r border-[#3E3E3E]">
 						<p className="font-bold bg-[#1C1C1D] text-center py-3 text-gray-300">
 							Your Personality is perceived as

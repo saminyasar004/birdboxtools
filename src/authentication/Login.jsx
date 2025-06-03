@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { MdEmail, MdLockOutline } from 'react-icons/md';
-import Logo from '../assets/logo.svg';
-import Black from '../assets/black.png';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../component/AuthContext';
-import axiosInstance from '../component/axiosInstance';
+import React, { useState } from "react";
+import { MdEmail, MdLockOutline } from "react-icons/md";
+import Logo from "../assets/logo.svg";
+import Black from "../assets/black.png";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../component/AuthContext";
+import axiosInstance from "../component/axiosInstance";
 
 const Login = () => {
 	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
-		email: '',
-		password: '',
+		email: "",
+		password: "",
 	});
-	const [error, setError] = useState('');
+	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 	const { login } = useAuth(); // Assuming you have a useAuth hook for authentication
 
@@ -31,15 +31,15 @@ const Login = () => {
 
 		// Basic validation
 		if (!formData.email || !formData.password) {
-			setError('Please fill in all fields');
+			setError("Please fill in all fields");
 			return;
 		}
 
 		setLoading(true);
-		setError('');
+		setError("");
 
 		try {
-			const response = await axiosInstance.post('/accounts/login/', {
+			const response = await axiosInstance.post("/accounts/login/", {
 				email: formData.email,
 				password: formData.password,
 			});
@@ -53,13 +53,17 @@ const Login = () => {
 					response.data.access_token,
 					response.data.refresh_token
 				);
-				localStorage.setItem('role', 'coach');
-				navigate('/home'); // Redirect to home page on success
+
+				const userRole =
+					response?.data?.is_admin === "true" ? "admin" : "coach";
+				localStorage.setItem("role", userRole);
+
+				navigate("/home");
 			}
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
-					'Login failed. Please check your credentials.'
+					"Login failed. Please check your credentials."
 			);
 		} finally {
 			setLoading(false);
@@ -78,7 +82,11 @@ const Login = () => {
 			<div className="md:w-1/2 w-full flex items-center justify-center">
 				<div className="md:w-[50%]  md:p-8 space-y-8 rounded-lg">
 					<div className="flex justify-center">
-						<img src={Logo} alt="Birdbox Logo" className="w-24 h-24" />
+						<img
+							src={Logo}
+							alt="Birdbox Logo"
+							className="w-24 h-24"
+						/>
 					</div>
 					<div className="flex justify-center">
 						<span className="text-[#BDC5DB] text-3xl font-bold">
@@ -87,12 +95,17 @@ const Login = () => {
 					</div>
 
 					{error && (
-						<div className="text-red-500 text-center text-sm">{error}</div>
+						<div className="text-red-500 text-center text-sm">
+							{error}
+						</div>
 					)}
 
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div className="flex flex-col gap-1">
-							<label htmlFor="email" className="text-[#BDC5DB] block">
+							<label
+								htmlFor="email"
+								className="text-[#BDC5DB] block"
+							>
 								Email
 							</label>
 							<div className="relative">
@@ -109,7 +122,10 @@ const Login = () => {
 							</div>
 						</div>
 						<div className="flex flex-col gap-1">
-							<label htmlFor="password" className="text-[#BDC5DB] block">
+							<label
+								htmlFor="password"
+								className="text-[#BDC5DB] block"
+							>
 								Password
 							</label>
 							<div className="relative">
@@ -126,7 +142,10 @@ const Login = () => {
 							</div>
 						</div>
 						<div className="flex items-end justify-end">
-							<Link to="/forget_password" className="text-blue-400 text-[14px]">
+							<Link
+								to="/forget_password"
+								className="text-blue-400 text-[14px]"
+							>
 								Forget Password
 							</Link>
 						</div>
@@ -134,9 +153,12 @@ const Login = () => {
 							type="submit"
 							disabled={loading}
 							className={`w-full px-4 py-2 font-bold text-white bg-blue-500 rounded focus:outline-none focus:shadow-outline ${
-								loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-							}`}>
-							{loading ? 'Logging in...' : 'Login'}
+								loading
+									? "opacity-50 cursor-not-allowed"
+									: "hover:bg-blue-700"
+							}`}
+						>
+							{loading ? "Logging in..." : "Login"}
 						</button>
 					</form>
 				</div>

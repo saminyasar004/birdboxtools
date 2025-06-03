@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import Sidebar from '../component/Sidebar';
+import { useEffect, useState } from "react";
+import Sidebar from "../component/Sidebar";
 
-import axiosInstance from '../component/axiosInstance';
+import axiosInstance from "../component/axiosInstance";
 
-import { FaPencilAlt, FaTrashAlt } from 'react-icons/fa'; // Import icons from react-icons
-import { FaPlus, FaSearch, FaSortAmountDown } from 'react-icons/fa'; // Import FontAwesome icons from react-icons
-import AddCoachModal from '../component/AddCoachModal';
+import { FaPencilAlt, FaTrashAlt } from "react-icons/fa"; // Import icons from react-icons
+import { FaPlus, FaSearch, FaSortAmountDown } from "react-icons/fa"; // Import FontAwesome icons from react-icons
+import AddCoachModal from "../component/AddCoachModal";
 
 const CoachList = () => {
 	const [userData, setUserData] = useState([]);
-
 	const [loading, setLoading] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
 
 	useEffect(() => {
 		fetchUser();
@@ -18,20 +18,49 @@ const CoachList = () => {
 
 	const fetchUser = async () => {
 		try {
-			const response = await axiosInstance.get('/accounts/coach-list/');
+			const response = await axiosInstance.get("/accounts/coach-list/");
 
 			if (response.status === 200) {
-				console.log('✅ Chat List Fetched 33:', response.data);
+				console.log("✅ Chat List Fetched 33:", response.data);
 				setUserData(response.data);
 			} else {
-				console.error('❌ Error fetching chat list:', response.data.error);
+				console.error(
+					"❌ Error fetching chat list:",
+					response.data.error
+				);
 			}
 		} catch (error) {
-			console.error('❌ Error fetching chat list:', error.message);
+			console.error("❌ Error fetching chat list:", error.message);
 		}
 	};
 
-	const [isOpen, setIsOpen] = useState(false);
+	const handleDeleteUser = async (e) => {
+		try {
+			const id = Number(e.target.dataset["id"]);
+
+			const confirmDelete = confirm(
+				`Do you want to delete ${
+					userData.filter((item) => item.id === id)[0].name
+				}?`
+			);
+
+			if (!confirmDelete) return;
+
+			const response = await axiosInstance.delete(
+				`/accounts/delete/${id}/`
+			);
+
+			if (response.status === 204) {
+				console.log("✅ User Deleted:", response.data);
+				fetchUser();
+			} else {
+				console.error("❌ Error deleting user:", response.data.error);
+			}
+		} catch (error) {
+			console.error("❌ Error deleting user:", error.message);
+		}
+	};
+
 	return (
 		<Sidebar>
 			<div className=" min-h-screen px-10">
@@ -40,7 +69,8 @@ const CoachList = () => {
 						<h1 className="text-xl">Coach list</h1>
 						<button
 							onClick={() => setIsOpen(true)}
-							className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-3 px-4 rounded inline-flex items-center">
+							className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-3 px-4 rounded inline-flex items-center"
+						>
 							Add
 							<FaPlus className="w-4 h-4 ml-2" />
 						</button>
@@ -54,7 +84,9 @@ const CoachList = () => {
 				</div>
 				<div className=" rounded-lg    overflow-x-auto ">
 					{loading ? (
-						<div className="text-center p-4 text-gray-500">Loading data...</div>
+						<div className="text-center p-4 text-gray-500">
+							Loading data...
+						</div>
 					) : (
 						<div className="h-[70vh] overflow-y-auto">
 							<table className="w-full text-t_color border-collapse  rounded-sm text-left ">
@@ -63,24 +95,45 @@ const CoachList = () => {
 										<th className="px-6 py-4">No</th>
 
 										<th className="px-6 py-4">Name</th>
-										<th className="px-6 py-4">Mobile Number</th>
+										<th className="px-6 py-4">
+											Mobile Number
+										</th>
 										<th className="px-6 py-4">Email</th>
-										<th className="px-6 py-4">Qualifications</th>
+										<th className="px-6 py-4">
+											Qualifications
+										</th>
 										<th className="px-6 py-4">Action</th>
 									</tr>
 								</thead>
 								<tbody>
 									{userData.map((item, index) => (
-										<tr key={index} className="border-t border-gray-700">
-											<td className="px-6 py-4">{item.id}</td>
-											<td className="px-6 py-4">{item.name}</td>
-											<td className="px-6 py-4">{item.phone}</td>
-											<td className="px-6 py-4">{item.email}</td>
-											<td className="px-6 py-4">{item.qualification}</td>
+										<tr
+											key={index}
+											className="border-t border-gray-700"
+										>
+											<td className="px-6 py-4">
+												{item.id}
+											</td>
+											<td className="px-6 py-4">
+												{item.name}
+											</td>
+											<td className="px-6 py-4">
+												{item.phone}
+											</td>
+											<td className="px-6 py-4">
+												{item.email}
+											</td>
+											<td className="px-6 py-4">
+												{item.qualification}
+											</td>
 
 											<td className="px-6 py-4 flex items-center space-x-4">
-												<button className="text-red-500 hover:text-red-600 border border-[#5285A7] px-2 py-1 rounded-md">
-													<FaTrashAlt className="h-5 w-3" />
+												<button
+													data-id={item.id}
+													onClick={handleDeleteUser}
+													className="text-red-500 hover:text-red-600 border border-[#5285A7] px-2 py-1 rounded-md"
+												>
+													<FaTrashAlt className="h-5 w-3 pointer-events-none" />
 												</button>
 											</td>
 										</tr>
