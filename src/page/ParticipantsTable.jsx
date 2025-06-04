@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from "react";
 import {
 	FaPencilAlt,
 	FaTrashAlt,
@@ -7,10 +7,12 @@ import {
 	FaSearch,
 	FaCheckSquare,
 	FaSquare,
-} from 'react-icons/fa';
-import SeminarHeader from './SeminarHeader';
-import EditParticipantModal from '../component/EditParticipant';
-import axiosInstance from '../component/axiosInstance';
+	FaFileImport,
+} from "react-icons/fa";
+import SeminarHeader from "./SeminarHeader";
+import EditParticipantModal from "../component/EditParticipant";
+import axiosInstance from "../component/axiosInstance";
+import AddParticipantModal from "../component/AddParticipant";
 
 const ParticipantsTable = ({
 	fetchSeminarData,
@@ -22,10 +24,11 @@ const ParticipantsTable = ({
 	const [filteredParticipants, setFilteredParticipants] = useState([]); // New state for filtered participants
 	const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 	const [file, setFile] = useState(null);
-	const [error, setError] = useState('');
+	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [searchQuery, setSearchQuery] = useState(''); // New state for search input
+	const [searchQuery, setSearchQuery] = useState(""); // New state for search input
 	const fileInputRef = useRef(null);
 	const [participantId, setParticipantId] = useState(null);
 
@@ -45,7 +48,10 @@ const ParticipantsTable = ({
 				participant.lastName || participant.last_name,
 				participant.email,
 			].some((field) =>
-				field?.toString().toLowerCase().includes(searchQuery.toLowerCase())
+				field
+					?.toString()
+					.toLowerCase()
+					.includes(searchQuery.toLowerCase())
 			)
 		);
 		setFilteredParticipants(filtered);
@@ -54,7 +60,7 @@ const ParticipantsTable = ({
 	const fetchParticipants = async (seminarId) => {
 		setLoading(true);
 		try {
-			const token = localStorage.getItem('token');
+			const token = localStorage.getItem("token");
 			const response = await axiosInstance.get(
 				`/dashboard/participants/${seminarId}/`,
 				{
@@ -66,19 +72,21 @@ const ParticipantsTable = ({
 			setParticipants(response.data);
 			setFilteredParticipants(response.data); // Initialize filtered list
 		} catch (err) {
-			setError('Failed to fetch participants. Please try again.');
+			setError("Failed to fetch participants. Please try again.");
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const handleDelete = async (id) => {
-		if (!window.confirm('Are you sure you want to delete this participant?')) {
+		if (
+			!window.confirm("Are you sure you want to delete this participant?")
+		) {
 			return;
 		}
 
 		setLoading(true);
-		setError('');
+		setError("");
 
 		try {
 			const response = await axiosInstance.delete(
@@ -88,12 +96,12 @@ const ParticipantsTable = ({
 			if (response.status === 204 || response.status === 200) {
 				fetchParticipants(item.id); // Refresh participant list
 			} else {
-				throw new Error('Failed to delete participant');
+				throw new Error("Failed to delete participant");
 			}
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
-					'Failed to delete participant. Please try again.'
+					"Failed to delete participant. Please try again."
 			);
 		} finally {
 			setLoading(false);
@@ -105,7 +113,7 @@ const ParticipantsTable = ({
 		const selectedFile = e.target.files[0];
 		if (selectedFile) {
 			setFile(selectedFile);
-			setError('');
+			setError("");
 		}
 	};
 
@@ -114,34 +122,41 @@ const ParticipantsTable = ({
 		setIsUploadModalOpen(true);
 	};
 
+	// Handle add participant button click
+	const handleAddPariticipantClick = () => {
+		setIsAddModalOpen(true);
+	};
+
 	// Handle file upload submission
 	const handleUploadSubmit = async (e) => {
 		e.preventDefault();
 
 		if (!file) {
-			setError('Please select a file to upload');
+			setError("Please select a file to upload");
 			return;
 		}
 		if (!item?.id) {
-			setError('Seminar ID not found');
+			setError("Seminar ID not found");
 			return;
 		}
 
 		setLoading(true);
-		setError('');
+		setError("");
 
 		const formData = new FormData();
-		formData.append('seminar_id', item.id);
-		formData.append('file', file);
+		formData.append("seminar_id", item.id);
+		formData.append("file", file);
 
 		try {
 			const response = await axiosInstance.post(
-				'/dashboard/participants/import/',
+				"/dashboard/participants/import/",
 				formData,
 				{
 					headers: {
-						'Content-Type': 'multipart/form-data',
-						Authorization: `Bearer ${localStorage.getItem('token')}`,
+						"Content-Type": "multipart/form-data",
+						Authorization: `Bearer ${localStorage.getItem(
+							"token"
+						)}`,
 					},
 				}
 			);
@@ -153,7 +168,7 @@ const ParticipantsTable = ({
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
-					'Failed to import participants. Please try again.'
+					"Failed to import participants. Please try again."
 			);
 		} finally {
 			setLoading(false);
@@ -168,8 +183,8 @@ const ParticipantsTable = ({
 	return (
 		<div className="text-t_color p-8">
 			<SeminarHeader
-				button_name={'Start Assessment'}
-				active={'Participants'}
+				button_name={"Start Assessment"}
+				active={"Participants"}
 				data={item}
 			/>
 
@@ -180,8 +195,17 @@ const ParticipantsTable = ({
 						<button
 							onClick={handleImportClick}
 							className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-							disabled={loading}>
-							<FaPlus className="mr-2" /> Import list
+							disabled={loading}
+						>
+							<FaFileImport className="mr-2" /> Import list
+						</button>
+
+						<button
+							onClick={handleAddPariticipantClick}
+							className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+							disabled={loading}
+						>
+							<FaPlus className="mr-2" /> Add Participant
 						</button>
 					</div>
 					<div className="flex bg-[#28282A] p-2 rounded px-4 justify-between items-center gap-4 2xl:w-[15vw]">
@@ -198,7 +222,9 @@ const ParticipantsTable = ({
 				</div>
 			</div>
 
-			{error && <div className="text-red-500 text-center mb-4">{error}</div>}
+			{error && (
+				<div className="text-red-500 text-center mb-4">{error}</div>
+			)}
 
 			{loading ? (
 				<div className="text-center p-4 text-gray-500">
@@ -210,10 +236,18 @@ const ParticipantsTable = ({
 						<thead>
 							<tr className="bg-[#28282A]">
 								<th className="px-6 py-3 text-left">No.</th>
-								<th className="px-6 py-3 text-left">First name</th>
-								<th className="px-6 py-3 text-left">Last name</th>
-								<th className="px-6 py-3 text-left">Assessment 1</th>
-								<th className="px-6 py-3 text-left">Assessment 2</th>
+								<th className="px-6 py-3 text-left">
+									First name
+								</th>
+								<th className="px-6 py-3 text-left">
+									Last name
+								</th>
+								<th className="px-6 py-3 text-left">
+									Assessment 1
+								</th>
+								<th className="px-6 py-3 text-left">
+									Assessment 2
+								</th>
 								<th className="px-6 py-3 text-left">Day 1</th>
 								<th className="px-6 py-3 text-left">Day 2</th>
 								<th className="px-6 py-3 text-left">Email</th>
@@ -222,55 +256,92 @@ const ParticipantsTable = ({
 						</thead>
 						<tbody>
 							{filteredParticipants.map((participant, index) => (
-								<tr key={participant.id} className="border-t border-gray-700">
-									<td className="px-6 py-4">{participant.id}</td>
+								<tr
+									key={participant.id}
+									className="border-t border-gray-700"
+								>
 									<td className="px-6 py-4">
-										{participant.firstName || participant.first_name}
+										{participant.id}
 									</td>
 									<td className="px-6 py-4">
-										{participant.lastName || participant.last_name}
+										{participant.firstName ||
+											participant.first_name}
+									</td>
+									<td className="px-6 py-4">
+										{participant.lastName ||
+											participant.last_name}
 									</td>
 									<td className="px-6 py-4">
 										{participant.assessment_one ? (
-											<FaCheckSquare color="#1E5DCC" className="mx-auto" />
+											<FaCheckSquare
+												color="#1E5DCC"
+												className="mx-auto"
+											/>
 										) : (
-											<FaSquare color="#696969" className="mx-auto" />
+											<FaSquare
+												color="#696969"
+												className="mx-auto"
+											/>
 										)}
 									</td>
 									<td className="px-6 py-4">
 										{participant.assessment_two ? (
-											<FaCheckSquare color="#1E5DCC" className="mx-auto" />
+											<FaCheckSquare
+												color="#1E5DCC"
+												className="mx-auto"
+											/>
 										) : (
-											<FaSquare color="#696969" className="mx-auto" />
+											<FaSquare
+												color="#696969"
+												className="mx-auto"
+											/>
 										)}
 									</td>
 									<td className="px-6 py-4">
 										{participant.day_one ? (
-											<FaCheckSquare color="#1E5DCC" className="mx-auto" />
+											<FaCheckSquare
+												color="#1E5DCC"
+												className="mx-auto"
+											/>
 										) : (
-											<FaSquare color="#696969" className="mx-auto" />
+											<FaSquare
+												color="#696969"
+												className="mx-auto"
+											/>
 										)}
 									</td>
 									<td className="px-6 py-4">
 										{participant.day_two ? (
-											<FaCheckSquare color="#1E5DCC" className="mx-auto" />
+											<FaCheckSquare
+												color="#1E5DCC"
+												className="mx-auto"
+											/>
 										) : (
-											<FaSquare color="#696969" className="mx-auto" />
+											<FaSquare
+												color="#696969"
+												className="mx-auto"
+											/>
 										)}
 									</td>
-									<td className="px-6 py-4">{participant.email}</td>
+									<td className="px-6 py-4">
+										{participant.email}
+									</td>
 									<td className="px-6 py-4 flex items-center space-x-4">
 										<button
 											onClick={() => {
 												setIsEditModalOpen(true);
 												setParticipantId(participant);
 											}}
-											className="text-blue-500 hover:text-blue-600 border border-[#5285A7] px-2 py-1 rounded-md">
+											className="text-blue-500 hover:text-blue-600 border border-[#5285A7] px-2 py-1 rounded-md"
+										>
 											<FaPencilAlt className="h-5 w-3" />
 										</button>
 										<button
 											className="text-red-500 hover:text-red-600 border border-[#5285A7] px-2 py-1 rounded-md"
-											onClick={() => handleDelete(participant.id)}>
+											onClick={() =>
+												handleDelete(participant.id)
+											}
+										>
 											<FaTrashAlt className="h-5 w-3" />
 										</button>
 									</td>
@@ -292,7 +363,8 @@ const ParticipantsTable = ({
 							<button
 								onClick={() => setIsUploadModalOpen(false)}
 								className="text-gray-400 hover:text-white"
-								disabled={loading}>
+								disabled={loading}
+							>
 								×
 							</button>
 						</div>
@@ -322,10 +394,11 @@ const ParticipantsTable = ({
 								disabled={loading || !file}
 								className={`w-full py-2 px-4 rounded text-white font-bold ${
 									loading || !file
-										? 'bg-gray-500 cursor-not-allowed'
-										: 'bg-[#163B76] hover:bg-blue-700'
-								}`}>
-								{loading ? 'Uploading...' : 'Submit'}
+										? "bg-gray-500 cursor-not-allowed"
+										: "bg-[#163B76] hover:bg-blue-700"
+								}`}
+							>
+								{loading ? "Uploading..." : "Submit"}
 							</button>
 						</form>
 					</div>
@@ -337,6 +410,13 @@ const ParticipantsTable = ({
 				isOpen={isEditModalOpen}
 				participant={participantId}
 				fetchParticipants={fetchParticipants}
+			/>
+
+			<AddParticipantModal
+				setIsOpen={setIsAddModalOpen}
+				isOpen={isAddModalOpen}
+				fetchParticipants={fetchParticipants}
+				seminarId={item.id}
 			/>
 		</div>
 	);
