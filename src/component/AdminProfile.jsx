@@ -16,31 +16,34 @@ const AdminProfile = ({ isOpen, setIsOpen }) => {
 	const [loading, setLoading] = useState(false);
 	const fileInputRef = useRef(null); // Ref for file input
 
+	const fetchProfile = async () => {
+		setLoading(true);
+		try {
+			const response = await axiosInstance.get("/accounts/profile/");
+			const data = response.data;
+			setFormData({
+				name: data.name || "",
+				email: data.email || "",
+				old_password: "",
+				new_password: "",
+			});
+			if (data.image) {
+				setImageName(`${backendBaseUrl}${data.image}`); // Extract filename from URL
+				localStorage.setItem(
+					"image",
+					`${backendBaseUrl}${data?.image}`
+				);
+			}
+		} catch (err) {
+			setError("Failed to load profile data. Please try again.");
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	// Fetch profile data when modal opens
 	useEffect(() => {
 		if (isOpen) {
-			const fetchProfile = async () => {
-				setLoading(true);
-				try {
-					const response = await axiosInstance.get(
-						"/accounts/profile/"
-					);
-					const data = response.data;
-					setFormData({
-						name: data.name || "",
-						email: data.email || "",
-						old_password: "",
-						new_password: "",
-					});
-					if (data.image) {
-						setImageName(`${backendBaseUrl}${data.image}`); // Extract filename from URL
-					}
-				} catch (err) {
-					setError("Failed to load profile data. Please try again.");
-				} finally {
-					setLoading(false);
-				}
-			};
 			fetchProfile();
 		}
 	}, [isOpen]);
@@ -130,6 +133,7 @@ const AdminProfile = ({ isOpen, setIsOpen }) => {
 					old_password: "",
 					new_password: "",
 				}));
+				fetchProfile();
 			}
 		} catch (err) {
 			setError(

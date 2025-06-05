@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react';
-import { FaTrash } from 'react-icons/fa';
-import axiosInstance from './axiosInstance';
+import React, { useState, useEffect } from "react";
+import { FaTrash } from "react-icons/fa";
+import axiosInstance, { backendBaseUrl } from "./axiosInstance";
 
 const EditParticipantModal = ({
 	isOpen,
@@ -10,23 +10,24 @@ const EditParticipantModal = ({
 	fetchParticipants,
 }) => {
 	const [formData, setFormData] = useState({
-		first_name: '',
-		last_name: '',
-		email: '',
+		first_name: "",
+		last_name: "",
+		email: "",
 	});
-	const [imageName, setImageName] = useState('');
+	const [imageName, setImageName] = useState("");
 	const [imageFile, setImageFile] = useState(null);
-	const [error, setError] = useState('');
+	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		if (isOpen && participant) {
 			setFormData({
-				first_name: participant.first_name || participant.firstName || '',
-				last_name: participant.last_name || participant.lastName || '',
-				email: participant.email || '',
+				first_name:
+					participant.first_name || participant.firstName || "",
+				last_name: participant.last_name || participant.lastName || "",
+				email: participant.email || "",
 			});
-			setImageName(participant.image || '');
+			setImageName(`${backendBaseUrl}${participant.image}` || "");
 		}
 	}, [isOpen, participant]);
 
@@ -39,23 +40,24 @@ const EditParticipantModal = ({
 			...prev,
 			[id]: value,
 		}));
-		setError('');
+		setError("");
 	};
 
 	// Handle image upload
 	const handleImageUpload = (e) => {
 		const file = e.target.files[0];
+		const imageUrl = URL.createObjectURL(file);
 		if (file) {
 			setImageFile(file);
-			setImageName(file.name);
-			setError('');
+			setImageName(imageUrl);
+			setError("");
 		}
 	};
 
 	// Handle image delete
 	const handleImageDelete = () => {
 		setImageFile(null);
-		setImageName('');
+		setImageName("");
 	};
 
 	// Handle form submission
@@ -63,23 +65,23 @@ const EditParticipantModal = ({
 		e.preventDefault();
 
 		if (!formData.first_name || !formData.last_name || !formData.email) {
-			setError('Please fill in all fields');
+			setError("Please fill in all fields");
 			return;
 		}
 		if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-			setError('Please enter a valid email');
+			setError("Please enter a valid email");
 			return;
 		}
 
 		setLoading(true);
-		setError('');
+		setError("");
 
 		const updateData = new FormData();
-		updateData.append('first_name', formData.first_name);
-		updateData.append('last_name', formData.last_name);
-		updateData.append('email', formData.email);
+		updateData.append("first_name", formData.first_name);
+		updateData.append("last_name", formData.last_name);
+		updateData.append("email", formData.email);
 		if (imageFile) {
-			updateData.append('image', imageFile);
+			updateData.append("image", imageFile);
 		}
 
 		try {
@@ -88,19 +90,19 @@ const EditParticipantModal = ({
 				updateData,
 				{
 					headers: {
-						'Content-Type': 'multipart/form-data',
+						"Content-Type": "multipart/form-data",
 					},
 				}
 			);
 			if (response.status === 200) {
-				alert('Participant updated successfully');
+				alert("Participant updated successfully");
 				setIsOpen(false);
 				if (fetchParticipants) fetchParticipants(participant.seminar); // Refresh participant list
 			}
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
-					'Failed to update participant. Please try again.'
+					"Failed to update participant. Please try again."
 			);
 		} finally {
 			setLoading(false);
@@ -119,13 +121,15 @@ const EditParticipantModal = ({
 			{isOpen && (
 				<div
 					className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
-					onClick={handleBackdropClick}>
+					onClick={handleBackdropClick}
+				>
 					<div className="bg-[#0F0F0F] p-6 rounded-lg shadow-lg w-[26rem]">
 						<div className="flex justify-between items-center mb-4">
 							<button
 								onClick={() => setIsOpen(false)}
 								className="text-gray-400 hover:text-white"
-								disabled={loading}>
+								disabled={loading}
+							>
 								← Back
 							</button>
 							<h2 className="text-lg font-bold text-[#BDC5DB]">
@@ -200,17 +204,28 @@ const EditParticipantModal = ({
 									/>
 									<label
 										htmlFor="image-upload"
-										className="bg-gray-700 text-[#BDC5DB] px-3 py-1 rounded cursor-pointer hover:bg-gray-600">
+										className="bg-gray-700 text-[#BDC5DB] px-3 py-1 rounded cursor-pointer hover:bg-gray-600"
+									>
 										Upload a pic
 									</label>
 									{imageName && (
 										<div className="ml-3 flex items-center">
-											<span className="text-gray-400">{imageName}</span>
+											{/* <span className="text-gray-400">
+												{imageName}
+											</span> */}
+
+											<img
+												src={imageName}
+												alt="profile"
+												className="w-10 h-10 rounded-full"
+											/>
+
 											<button
 												type="button"
 												onClick={handleImageDelete}
 												className="ml-2 text-red-500 hover:text-red-700"
-												disabled={loading}>
+												disabled={loading}
+											>
 												<FaTrash />
 											</button>
 										</div>
@@ -223,10 +238,11 @@ const EditParticipantModal = ({
 								disabled={loading}
 								className={`bg-[#163B76] text-white px-4 py-2 rounded w-full ${
 									loading
-										? 'opacity-50 cursor-not-allowed'
-										: 'hover:bg-blue-700'
-								}`}>
-								{loading ? 'Submitting...' : 'Submit'}
+										? "opacity-50 cursor-not-allowed"
+										: "hover:bg-blue-700"
+								}`}
+							>
+								{loading ? "Submitting..." : "Submit"}
 							</button>
 						</form>
 					</div>

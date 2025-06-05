@@ -14,8 +14,8 @@ const AddParticipantModal = ({
 		last_name: "",
 		email: "",
 	});
-	// const [imageName, setImageName] = useState("");
-	// const [imageFile, setImageFile] = useState(null);
+	const [imageName, setImageName] = useState("");
+	const [imageFile, setImageFile] = useState(null);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 
@@ -44,25 +44,25 @@ const AddParticipantModal = ({
 	};
 
 	// Handle image upload
-	// const handleImageUpload = (e) => {
-	// 	const file = e.target.files[0];
-	// 	if (file) {
-	// 		setImageFile(file);
-	// 		setImageName(file.name);
-	// 		setError("");
-	// 	}
-	// };
+	const handleImageUpload = (e) => {
+		const file = e.target.files[0];
+		const imageUrl = URL.createObjectURL(file);
+		if (file) {
+			setImageFile(file);
+			setImageName(imageUrl);
+			setError("");
+		}
+	};
 
 	// Handle image delete
-	// const handleImageDelete = () => {
-	// 	setImageFile(null);
-	// 	setImageName("");
-	// };
+	const handleImageDelete = () => {
+		setImageFile(null);
+		setImageName("");
+	};
 
 	// Handle form submission
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log("Formdata ");
 
 		if (!formData.first_name || !formData.last_name || !formData.email) {
 			setError("Please fill in all fields");
@@ -81,9 +81,9 @@ const AddParticipantModal = ({
 		payloadData.append("last_name", formData.last_name);
 		payloadData.append("email", formData.email);
 		payloadData.append("seminar_id", seminarId);
-		// if (imageFile) {
-		// 	payloadData.append("image", imageFile);
-		// }
+		if (imageFile) {
+			payloadData.append("image", imageFile);
+		}
 
 		try {
 			const response = await axiosInstance.post(
@@ -103,8 +103,8 @@ const AddParticipantModal = ({
 					last_name: "",
 					email: "",
 				});
-				// setImageName("");
-				// setImageFile(null);
+				setImageName("");
+				setImageFile(null);
 				if (fetchParticipants) fetchParticipants(seminarId); // Refresh participant list
 			}
 		} catch (err) {
@@ -198,7 +198,7 @@ const AddParticipantModal = ({
 								/>
 							</div>
 
-							{/* <div className="mb-4">
+							<div className="mb-4">
 								<label className="block text-sm font-bold text-[#BDC5DB] mb-2">
 									Upload a pic
 								</label>
@@ -218,9 +218,16 @@ const AddParticipantModal = ({
 									</label>
 									{imageName && (
 										<div className="ml-3 flex items-center">
-											<span className="text-gray-400">
+											{/* <span className="text-gray-400">
 												{imageName}
-											</span>
+											</span> */}
+
+											<img
+												src={imageName}
+												alt="profile"
+												className="w-10 h-10 rounded-full"
+											/>
+
 											<button
 												type="button"
 												onClick={handleImageDelete}
@@ -232,7 +239,7 @@ const AddParticipantModal = ({
 										</div>
 									)}
 								</div>
-							</div> */}
+							</div>
 
 							<button
 								type="submit"

@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { IoArrowForward } from "react-icons/io5";
 import { MdArrowBack } from "react-icons/md";
-import axiosInstance from "../component/axiosInstance";
+import axiosInstance, { backendBaseUrl } from "../component/axiosInstance";
+import UserPlaceholderImage from "../assets/user-placeholder.png";
 
 const Assessmendivetail = ({
 	participant,
@@ -12,12 +13,19 @@ const Assessmendivetail = ({
 	selectedParticipant,
 	participants,
 }) => {
-	console.log("participants[0]?.id", participants);
+	// State for image upload
+	const [profileImage, setProfileImage] = useState(
+		"https://t4.ftcdn.net/jpg/02/14/74/61/360_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg"
+	);
+	const [imageFile, setImageFile] = useState(null);
 
 	const [assessmentDay, setAssessmentDay] = useState("one");
 
 	// Initial data structure
 	const initialData = {
+		image: participant?.image
+			? `${backendBaseUrl}${participant?.image}`
+			: UserPlaceholderImage,
 		name: participant?.first_name || "Simone",
 		"We saw you coaching the": "Strict toes to bar",
 		"Warm up": "Warm Up",
@@ -84,12 +92,6 @@ const Assessmendivetail = ({
 		"We saw you coaching the": initialData["We saw you coaching the"],
 		"On a personal note": initialData["On a personal note"],
 	});
-
-	// State for image upload
-	const [profileImage, setProfileImage] = useState(
-		"https://t4.ftcdn.net/jpg/02/14/74/61/360_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg"
-	);
-	const [imageFile, setImageFile] = useState(null);
 
 	// State for language (assuming this is passed or selected elsewhere)
 
@@ -780,7 +782,7 @@ const Assessmendivetail = ({
 									required
 								/>
 								<img
-									src={profileImage}
+									src={initialData.image}
 									alt="Profile"
 									className="w-24 h-24 rounded-full mb-2 object-cover"
 								/>
