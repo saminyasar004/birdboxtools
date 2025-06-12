@@ -20,6 +20,8 @@ const Assessmendivetail = ({
 	const [imageFile, setImageFile] = useState(null);
 
 	const [assessmentDay, setAssessmentDay] = useState("one");
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState("");
 
 	// Initial data structure
 	const initialData = {
@@ -92,8 +94,6 @@ const Assessmendivetail = ({
 		"We saw you coaching the": initialData["We saw you coaching the"],
 		"On a personal note": initialData["On a personal note"],
 	});
-
-	// State for language (assuming this is passed or selected elsewhere)
 
 	// State to manage checked status with mutual exclusivity
 	const [checkedItems, setCheckedItems] = useState({
@@ -243,6 +243,229 @@ const Assessmendivetail = ({
 		),
 	});
 
+	// Fetch assessment data when participant or assessmentDay changes
+	useEffect(() => {
+		const fetchAssessmentData = async () => {
+			if (!participant?.id) return;
+
+			setIsLoading(true);
+			setError("");
+			try {
+				const response = await axiosInstance.get(
+					`/dashboard/get_assessment/${participant.id}/`
+				);
+				const assessmentData =
+					assessmentDay === "one"
+						? response.data.assessment_data
+						: response.data.assessment_data_two;
+
+				if (assessmentData) {
+					// Update text inputs
+					setTextInputs({
+						"We saw you coaching the":
+							assessmentData["We saw you coaching the"] || "",
+						"On a personal note":
+							assessmentData["On a personal note"] || "",
+					});
+
+					// Update profile image
+					setProfileImage(
+						assessmentData.image
+							? `${backendBaseUrl}${assessmentData.image}`
+							: participant?.image
+							? `${backendBaseUrl}${participant.image}`
+							: UserPlaceholderImage
+					);
+
+					// Update checked items
+					setCheckedItems({
+						"ramp-0-yes": assessmentData.RAMP === true,
+						"ramp-0-no": assessmentData.RAMP === false,
+						"nameset-0-yes": assessmentData.NAMESET === true,
+						"nameset-0-no": assessmentData.NAMESET === false,
+						...Object.keys(assessmentData.CoachingStyle).reduce(
+							(acc, key, index) => ({
+								...acc,
+								[`coaching-left-${index}-yes`]:
+									key === "Autocratic" ||
+									key === "Democratic" ||
+									key === "Calls out reps" ||
+									key === "General cues" ||
+									key === "Moves with the group"
+										? assessmentData.CoachingStyle[key] ===
+										  true
+										: false,
+								[`coaching-left-${index}-no`]:
+									key === "Autocratic" ||
+									key === "Democratic" ||
+									key === "Calls out reps" ||
+									key === "General cues" ||
+									key === "Moves with the group"
+										? assessmentData.CoachingStyle[key] ===
+										  false
+										: false,
+								[`coaching-right-${index}-yes`]:
+									key === "Empty reps" ||
+									key === "Individual considerations" ||
+									key === "Matches Personality"
+										? assessmentData.CoachingStyle[key] ===
+										  true
+										: false,
+								[`coaching-right-${index}-no`]:
+									key === "Empty reps" ||
+									key === "Individual considerations" ||
+									key === "Matches Personality"
+										? assessmentData.CoachingStyle[key] ===
+										  false
+										: false,
+							}),
+							{}
+						),
+						...Object.keys(
+							assessmentData.TransformationalElements.CHARISMA
+						).reduce(
+							(acc, key, index) => ({
+								...acc,
+								[`charisma-left-${index}-yes`]:
+									key === "Energetic" ||
+									key === "Visual contact" ||
+									key === "Varied Pitch and Tone" ||
+									key === "Resonant voice" ||
+									key === "Facial expressions"
+										? assessmentData
+												.TransformationalElements
+												.CHARISMA[key] === true
+										: false,
+								[`charisma-left-${index}-no`]:
+									key === "Energetic" ||
+									key === "Visual contact" ||
+									key === "Varied Pitch and Tone" ||
+									key === "Resonant voice" ||
+									key === "Facial expressions"
+										? assessmentData
+												.TransformationalElements
+												.CHARISMA[key] === false
+										: false,
+								[`charisma-right-${index}-yes`]:
+									key === "Use of Pauses and Silences" ||
+									key === "Hand Gestures" ||
+									key === "Open body language" ||
+									key === "Use of metaphors" ||
+									key === "Expert in subjects"
+										? assessmentData
+												.TransformationalElements
+												.CHARISMA[key] === true
+										: false,
+								[`charisma-right-${index}-no`]:
+									key === "Use of Pauses and Silences" ||
+									key === "Hand Gestures" ||
+									key === "Open body language" ||
+									key === "Use of metaphors" ||
+									key === "Expert in subjects"
+										? assessmentData
+												.TransformationalElements
+												.CHARISMA[key] === false
+										: false,
+							}),
+							{}
+						),
+						...Object.entries({
+							"Coaching philosophy":
+								assessmentData.TransformationalElements[
+									"Coaching philosophy"
+								],
+							"Intellectual Stimulation":
+								assessmentData.TransformationalElements[
+									"Intellectual Stimulation"
+								],
+							"Idolized Influences":
+								assessmentData.TransformationalElements[
+									"Idolized Influences"
+								],
+							"Individual Considerations":
+								assessmentData.TransformationalElements[
+									"Individual Considerations"
+								],
+							Inspiration:
+								assessmentData.TransformationalElements
+									.Inspiration,
+						}).reduce(
+							(acc, [key, value], index) => ({
+								...acc,
+								[`transformational-${index}-yes`]:
+									value === true,
+								[`transformational-${index}-no`]:
+									value === false,
+							}),
+							{}
+						),
+						...Object.keys(assessmentData.SensoryCoaching).reduce(
+							(acc, key, index) => ({
+								...acc,
+								[`sensory-${index}-yes`]:
+									assessmentData.SensoryCoaching[key] ===
+									true,
+								[`sensory-${index}-no`]:
+									assessmentData.SensoryCoaching[key] ===
+									false,
+							}),
+							{}
+						),
+						...Object.keys(
+							assessmentData.Personalities["Fast Thinkers"]
+						).reduce(
+							(acc, key, index) => ({
+								...acc,
+								[`personalities-1-${index}-yes`]:
+									key !== "Fast Thinkers"
+										? assessmentData.Personalities[
+												"Fast Thinkers"
+										  ][key] === true
+										: false,
+								[`personalities-1-${index}-no`]:
+									key !== "Fast Thinkers"
+										? assessmentData.Personalities[
+												"Fast Thinkers"
+										  ][key] === false
+										: false,
+							}),
+							{}
+						),
+						...Object.keys(
+							assessmentData.Personalities["Slow Thinkers"]
+						).reduce(
+							(acc, key, index) => ({
+								...acc,
+								[`personalities-2-${index}-yes`]:
+									key !== "Slow Thinkers"
+										? assessmentData.Personalities[
+												"Slow Thinkers"
+										  ][key] === true
+										: false,
+								[`personalities-2-${index}-no`]:
+									key !== "Slow Thinkers"
+										? assessmentData.Personalities[
+												"Slow Thinkers"
+										  ][key] === false
+										: false,
+							}),
+							{}
+						),
+					});
+				} else {
+					resetForm();
+				}
+			} catch (err) {
+				setError("Failed to load assessment data. Please try again.");
+				console.error("Error fetching assessment:", err);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchAssessmentData();
+	}, [participant, assessmentDay]);
+
 	// Function to toggle Yes/No check state with mutual exclusivity
 	const toggleCheck = (section, itemIndex, type) => {
 		const yesKey = `${section}-${itemIndex}-yes`;
@@ -279,7 +502,9 @@ const Assessmendivetail = ({
 			"On a personal note": "",
 		});
 		setProfileImage(
-			"https://t4.ftcdn.net/jpg/02/14/74/61/360_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg"
+			participant?.image
+				? `${backendBaseUrl}${participant.image}`
+				: UserPlaceholderImage
 		);
 		setImageFile(null);
 
@@ -354,7 +579,7 @@ const Assessmendivetail = ({
 	// Function to construct the assessment JSON
 	const constructAssessmentData = () => {
 		return {
-			name: initialData.name,
+			name: participant?.first_name || "Simone",
 			"We saw you coaching the": textInputs["We saw you coaching the"],
 			"Warm up": initialData["Warm up"],
 			"On a personal note": textInputs["On a personal note"],
@@ -570,27 +795,27 @@ const Assessmendivetail = ({
 		const assessmentData = constructAssessmentData();
 
 		// Check text inputs
-		// if (
-		// 	!textInputs["We saw you coaching the"] ||
-		// 	!textInputs["On a personal note"]
-		// ) {
-		// 	alert(
-		// 		'Please fill out all text fields: "We saw you coaching the" and "On a personal note".'
-		// 	);
-		// 	return false;
-		// }
+		if (
+			!textInputs["We saw you coaching the"] ||
+			!textInputs["On a personal note"]
+		) {
+			alert(
+				'Please fill out all text fields: "We saw you coaching the" and "On a personal note".'
+			);
+			return false;
+		}
 
 		// Check language
-		// if (!selectLanguage) {
-		// 	alert('Please select a language.');
-		// 	return false;
-		// }
+		if (!selectLanguage) {
+			alert("Please select a language.");
+			return false;
+		}
 
 		// Check RAMP and NAMESET
-		// if (assessmentData.RAMP === null || assessmentData.NAMESET === null) {
-		// 	alert('Please select Yes or No for RAMP and NAMESET.');
-		// 	return false;
-		// }
+		if (assessmentData.RAMP === null || assessmentData.NAMESET === null) {
+			alert("Please select Yes or No for RAMP and NAMESET.");
+			return false;
+		}
 
 		// Check CoachingStyle (all displayed fields must be set)
 		const coachingFields = [
@@ -610,12 +835,12 @@ const Assessmendivetail = ({
 					: `coaching-right-${i - 5}-yes`;
 			const noKey =
 				i < 5 ? `coaching-left-${i}-no` : `coaching-right-${i - 5}-no`;
-			// if (!checkedItems[yesKey] && !checkedItems[noKey]) {
-			// 	alert(
-			// 		`Please select Yes or No for "${coachingFields[i]}" in Coaching Style.`
-			// 	);
-			// 	return false;
-			// }
+			if (!checkedItems[yesKey] && !checkedItems[noKey]) {
+				alert(
+					`Please select Yes or No for "${coachingFields[i]}" in Coaching Style.`
+				);
+				return false;
+			}
 		}
 
 		// Check CHARISMA (all displayed fields must be set)
@@ -638,12 +863,12 @@ const Assessmendivetail = ({
 					: `charisma-right-${i - 5}-yes`;
 			const noKey =
 				i < 5 ? `charisma-left-${i}-no` : `charisma-right-${i - 5}-no`;
-			// if (!checkedItems[yesKey] && !checkedItems[noKey]) {
-			// 	alert(
-			// 		`Please select Yes or No for "${charismaFields[i]}" in CHARISMA.`
-			// 	);
-			// 	return false;
-			// }
+			if (!checkedItems[yesKey] && !checkedItems[noKey]) {
+				alert(
+					`Please select Yes or No for "${charismaFields[i]}" in CHARISMA.`
+				);
+				return false;
+			}
 		}
 
 		// Check TransformationalElements (non-CHARISMA fields)
@@ -655,15 +880,16 @@ const Assessmendivetail = ({
 			"Inspiration",
 		];
 		for (let i = 0; i < transformationalFields.length; i++) {
-			// if (
-			// 	assessmentData.TransformationalElements[transformationalFields[i]] ===
-			// 	null
-			// ) {
-			// 	alert(
-			// 		`Please select Yes or No for "${transformationalFields[i]}" in Transformational Elements.`
-			// 	);
-			// 	return false;
-			// }
+			if (
+				assessmentData.TransformationalElements[
+					transformationalFields[i]
+				] === null
+			) {
+				alert(
+					`Please select Yes or No for "${transformationalFields[i]}" in Transformational Elements.`
+				);
+				return false;
+			}
 		}
 
 		// Check SensoryCoaching
@@ -676,48 +902,48 @@ const Assessmendivetail = ({
 			"Smoothness",
 		];
 		for (let i = 0; i < sensoryFields.length; i++) {
-			// if (assessmentData.SensoryCoaching[sensoryFields[i]] === null) {
-			// 	alert(
-			// 		`Please select Yes or No for "${sensoryFields[i]}" in Sensory Coaching.`
-			// 	);
-			// 	return false;
-			// }
+			if (assessmentData.SensoryCoaching[sensoryFields[i]] === null) {
+				alert(
+					`Please select Yes or No for "${sensoryFields[i]}" in Sensory Coaching.`
+				);
+				return false;
+			}
 		}
 
 		// Check Personalities
 		const fastThinkerFields = Object.keys(
-			initialData.Personalities["Fast Thinkers"]
+			assessmentData.Personalities["Fast Thinkers"]
 		);
 		const slowThinkerFields = Object.keys(
-			initialData.Personalities["Slow Thinkers"]
+			assessmentData.Personalities["Slow Thinkers"]
 		);
 		for (let i = 0; i < fastThinkerFields.length; i++) {
-			// if (
-			// 	assessmentData.Personalities['Fast Thinkers'][fastThinkerFields[i]] ===
-			// 	null
-			// ) {
-			// 	alert(
-			// 		`Please select Yes or No for "${fastThinkerFields[i]}" in Fast Thinkers.`
-			// 	);
-			// 	return false;
-			// }
+			if (
+				assessmentData.Personalities["Fast Thinkers"][
+					fastThinkerFields[i]
+				] === null
+			) {
+				alert(
+					`Please select Yes or No for "${fastThinkerFields[i]}" in Fast Thinkers.`
+				);
+				return false;
+			}
 		}
 		for (let i = 0; i < slowThinkerFields.length; i++) {
-			// if (
-			// 	assessmentData.Personalities['Slow Thinkers'][slowThinkerFields[i]] ===
-			// 	null
-			// ) {
-			// 	alert(
-			// 		`Please select Yes or No for "${slowThinkerFields[i]}" in Slow Thinkers.`
-			// 	);
-			// 	return false;
-			// }
+			if (
+				assessmentData.Personalities["Slow Thinkers"][
+					slowThinkerFields[i]
+				] === null
+			) {
+				alert(
+					`Please select Yes or No for "${slowThinkerFields[i]}" in Slow Thinkers.`
+				);
+				return false;
+			}
 		}
 
 		return true;
 	};
-
-	const [isLoading, setIsLoading] = useState(false);
 
 	// Function to handle form submission
 	const handleConfirm = async () => {
@@ -730,6 +956,7 @@ const Assessmendivetail = ({
 			return;
 		}
 		setIsLoading(true);
+		setError("");
 		const assessmentData = constructAssessmentData();
 		const formData = new FormData();
 		console.log("Form Data:", JSON.stringify(assessmentData));
@@ -749,7 +976,7 @@ const Assessmendivetail = ({
 			if (response.status === 200 || response.status === 201) {
 				console.log("Assessment saved successfully:", response.data);
 				alert("Assessment saved successfully!");
-				resetForm(); // Clear all fields after successful submission
+				// resetForm(); // Clear all fields after successful submission
 			} else {
 				console.error(
 					"Failed to save assessment:",
@@ -759,7 +986,7 @@ const Assessmendivetail = ({
 			}
 		} catch (error) {
 			console.error("Error submitting assessment:", error);
-			alert("An error occurred while saving the assessment.");
+			setError("An error occurred while saving the assessment.");
 		} finally {
 			setIsLoading(false);
 		}
@@ -767,11 +994,18 @@ const Assessmendivetail = ({
 
 	return (
 		<div className="min-h-screen bg-[#28282A] text-[14px] text-white p-4">
+			{/* Error Message */}
+			{error && (
+				<div className="text-red-500 text-sm text-center mb-4">
+					{error}
+				</div>
+			)}
+
 			{/* Main Layout */}
 			<div className="flex flex-col lg:flex-row bg-[#28282A] shadow-lg border border-gray-700">
 				{/* Left Profile Section */}
 				<div className="w-full 2xl:w-1/3 bg-[#28282A] rounded-t lg:rounded-l">
-					<div className="w-full flex justify-between items-center  border border-[#3E3E3E] px-4">
+					<div className="w-full flex justify-between items-center border border-[#3E3E3E] px-4">
 						<div className="flex flex-row items-center justify-center gap-4 py-6">
 							<label className="cursor-pointer">
 								<input
@@ -779,10 +1013,9 @@ const Assessmendivetail = ({
 									accept="image/*"
 									onChange={handleImageUpload}
 									className="hidden"
-									required
 								/>
 								<img
-									src={initialData.image}
+									src={profileImage}
 									alt="Profile"
 									className="w-24 h-24 rounded-full mb-2 object-cover"
 								/>
@@ -792,7 +1025,7 @@ const Assessmendivetail = ({
 									Name
 								</h3>
 								<p className="text-[#B0B4BF] text-[15px]">
-									{initialData.name}
+									{participant?.first_name || "Simone"}
 								</p>
 							</div>
 						</div>
@@ -838,7 +1071,6 @@ const Assessmendivetail = ({
 										e.target.value
 									)
 								}
-								required
 							/>
 						</div>
 					</div>
@@ -856,7 +1088,6 @@ const Assessmendivetail = ({
 										e.target.value
 									)
 								}
-								required
 							/>
 						</div>
 					</div>
@@ -887,7 +1118,6 @@ const Assessmendivetail = ({
 														)
 													}
 													className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-													required
 												/>
 												Yes
 											</label>
@@ -907,7 +1137,6 @@ const Assessmendivetail = ({
 														)
 													}
 													className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-													required
 												/>
 												No
 											</label>
@@ -932,7 +1161,6 @@ const Assessmendivetail = ({
 														)
 													}
 													className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-													required
 												/>
 												Yes
 											</label>
@@ -952,7 +1180,6 @@ const Assessmendivetail = ({
 														)
 													}
 													className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-													required
 												/>
 												No
 											</label>
@@ -1014,7 +1241,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															Yes
 														</label>
@@ -1034,7 +1260,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															No
 														</label>
@@ -1060,7 +1285,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															Yes
 														</label>
@@ -1080,7 +1304,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															No
 														</label>
@@ -1159,7 +1382,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															Yes
 														</label>
@@ -1179,7 +1401,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															No
 														</label>
@@ -1205,7 +1426,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															Yes
 														</label>
@@ -1225,7 +1445,6 @@ const Assessmendivetail = ({
 																	)
 																}
 																className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-																required
 															/>
 															No
 														</label>
@@ -1266,7 +1485,6 @@ const Assessmendivetail = ({
 																)
 															}
 															className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-															required
 														/>
 														Yes
 													</label>
@@ -1286,7 +1504,6 @@ const Assessmendivetail = ({
 																)
 															}
 															className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-															required
 														/>
 														No
 													</label>
@@ -1340,7 +1557,6 @@ const Assessmendivetail = ({
 															)
 														}
 														className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-														required
 													/>
 													Yes
 												</label>
@@ -1360,7 +1576,6 @@ const Assessmendivetail = ({
 															)
 														}
 														className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-														required
 													/>
 													No
 												</label>
@@ -1413,7 +1628,6 @@ const Assessmendivetail = ({
 															)
 														}
 														className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-														required
 													/>
 													Yes
 												</label>
@@ -1433,7 +1647,6 @@ const Assessmendivetail = ({
 															)
 														}
 														className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-														required
 													/>
 													No
 												</label>
@@ -1476,7 +1689,6 @@ const Assessmendivetail = ({
 															)
 														}
 														className="h-4 w-4 text-green-500 bg-gray-700 border-gray-500 rounded"
-														required
 													/>
 													Yes
 												</label>
@@ -1496,7 +1708,6 @@ const Assessmendivetail = ({
 															)
 														}
 														className="h-4 w-4 text-red-500 bg-gray-700 border-gray-500 rounded"
-														required
 													/>
 													No
 												</label>
@@ -1511,10 +1722,13 @@ const Assessmendivetail = ({
 			</div>
 			<div className="flex items-center w-full justify-center py-4">
 				<button
-					className="bg-[#1C1C1D] px-12 py-2 rounded-md"
+					className={`bg-[#1C1C1D] px-12 py-2 rounded-md ${
+						isLoading ? "opacity-50 cursor-not-allowed" : ""
+					}`}
 					onClick={handleConfirm}
+					disabled={isLoading}
 				>
-					{isLoading ? "Confirming....." : "Confirm"}
+					{isLoading ? "Confirming..." : "Confirm"}
 				</button>
 			</div>
 			<div className="flex justify-center items-center gap-3">

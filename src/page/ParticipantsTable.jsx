@@ -168,6 +168,7 @@ const ParticipantsTable = ({
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
+					err.response?.data?.error ||
 					"Failed to import participants. Please try again."
 			);
 		} finally {
