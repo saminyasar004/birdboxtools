@@ -1,31 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import axiosInstance from './axiosInstance';
+import React, { useState, useEffect } from "react";
+import axiosInstance from "./axiosInstance";
 
 // eslint-disable-next-line react/prop-types
 const ScheduleSeminarModal = ({ isOpen, setIsOpen, fetchSeminarData }) => {
 	const [formData, setFormData] = useState({
-		location: '',
-		date: '',
-		coach: '',
+		location: "",
+		date: "",
+		coach: "",
 	});
 	const [coaches, setCoaches] = useState([]);
-	const [error, setError] = useState('');
+	const [isCoachesLoading, setIsCoachesLoading] = useState(false);
+	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
+	const role = localStorage.getItem("role");
+	const name = localStorage.getItem("name");
+	const email = localStorage.getItem("email");
+	const [loggedInCoach, setLoggedInCoach] = useState(null);
 
 	// Fetch coaches when modal opens
 	useEffect(() => {
 		if (isOpen) {
+			setIsCoachesLoading(true);
 			const fetchCoaches = async () => {
 				try {
-					const response = await axiosInstance.get('/accounts/coach-list/');
+					const response = await axiosInstance.get(
+						"/accounts/coach-list/"
+					);
 					setCoaches(response.data); // Assuming response.data is an array of coach objects
 				} catch (err) {
-					setError('Failed to load coaches. Please try again.');
+					setError("Failed to load coaches. Please try again.");
+				} finally {
+					setIsCoachesLoading(false);
 				}
 			};
 			fetchCoaches();
 		}
 	}, [isOpen]);
+
+	// Reset state when modal closes
+	useEffect(() => {
+		if (!isOpen) {
+			setCoaches([]);
+			setIsCoachesLoading(false);
+			setError("");
+			setFormData({
+				location: "",
+				date: "",
+				coach: "",
+			});
+			setLoggedInCoach(null);
+		}
+	}, [isOpen]);
+
+	// Set loggedInCoach after coaches are fetched
+	useEffect(() => {
+		if (role === "coach" && coaches.length > 0) {
+			const coach = coaches.find(
+				(coach) => coach.name === name && coach.email === email
+			);
+			setLoggedInCoach(coach || null);
+			if (coach) {
+				setFormData((prev) => ({
+					...prev,
+					coach: coach.id,
+				}));
+			}
+		}
+	}, [coaches, role, name, email]);
 
 	// Handle input changes
 	const handleChange = (e) => {
@@ -34,7 +75,7 @@ const ScheduleSeminarModal = ({ isOpen, setIsOpen, fetchSeminarData }) => {
 			...prev,
 			[id]: value,
 		}));
-		setError('');
+		setError("");
 	};
 
 	// Handle form submission
@@ -43,27 +84,27 @@ const ScheduleSeminarModal = ({ isOpen, setIsOpen, fetchSeminarData }) => {
 
 		// Validation
 		if (!formData.location || !formData.date || !formData.coach) {
-			setError('Please fill in all fields');
+			setError("Please fill in all fields");
 			return;
 		}
 
 		setLoading(true);
-		setError('');
+		setError("");
 
 		try {
-			const response = await axiosInstance.post('/dashboard/seminars/', {
+			const response = await axiosInstance.post("/dashboard/seminars/", {
 				location: formData.location,
 				date: formData.date,
-				coach: formData.coach, // Sending coach ID
+				coach: formData.coach, // Use formData.coach directly
 			});
 
-			alert('Seminar scheduled successfully:', response.data);
+			alert("Seminar scheduled successfully:", response.data);
 			setIsOpen(false);
 			fetchSeminarData();
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
-					'Failed to schedule seminar. Please try again.'
+					"Failed to schedule seminar. Please try again."
 			);
 		} finally {
 			setLoading(false);
@@ -82,13 +123,15 @@ const ScheduleSeminarModal = ({ isOpen, setIsOpen, fetchSeminarData }) => {
 			{isOpen && (
 				<div
 					className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
-					onClick={handleBackdropClick}>
+					onClick={handleBackdropClick}
+				>
 					<div className="bg-[#0F0F0F] p-6 rounded-lg shadow-lg w-[30rem]">
 						<div className="flex justify-between items-center mb-4">
 							<button
 								onClick={() => setIsOpen(false)}
 								className="text-gray-400 hover:text-white"
-								disabled={loading}>
+								disabled={loading}
+							>
 								← Back
 							</button>
 							<h2 className="text-lg font-bold text-t_color">
@@ -100,6 +143,12 @@ const ScheduleSeminarModal = ({ isOpen, setIsOpen, fetchSeminarData }) => {
 						{error && (
 							<div className="text-red-500 text-sm text-center mb-4">
 								{error}
+							</div>
+						)}
+
+						{isCoachesLoading && (
+							<div className="text-white text-sm text-center mb-4">
+								Loading coaches...
 							</div>
 						)}
 
@@ -133,34 +182,41 @@ const ScheduleSeminarModal = ({ isOpen, setIsOpen, fetchSeminarData }) => {
 								/>
 							</div>
 
-							<div className="mb-4">
-								<label className="block text-sm font-bold text-t_color mb-2">
-									Lead Coach:
-								</label>
-								<select
-									id="coach"
-									value={formData.coach}
-									onChange={handleChange}
-									className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-									required>
-									<option value="">Select a coach</option>
-									{coaches.map((coach) => (
-										<option key={coach.id} value={coach.id}>
-											{coach.name}
-										</option>
-									))}
-								</select>
-							</div>
+							{!loggedInCoach && (
+								<div className="mb-4">
+									<label className="block text-sm font-bold text-t_color mb-2">
+										Lead Coach:
+									</label>
+									<select
+										id="coach"
+										value={formData.coach}
+										onChange={handleChange}
+										className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+										required
+									>
+										<option value="">Select a coach</option>
+										{coaches.map((coach) => (
+											<option
+												key={coach.id}
+												value={coach.id}
+											>
+												{coach.name}
+											</option>
+										))}
+									</select>
+								</div>
+							)}
 
 							<button
 								type="submit"
-								disabled={loading}
+								disabled={loading || isCoachesLoading}
 								className={`bg-[#163B76] text-white px-4 py-2 rounded w-full ${
-									loading
-										? 'opacity-50 cursor-not-allowed'
-										: 'hover:bg-blue-700'
-								}`}>
-								{loading ? 'Confirming...' : 'Confirm'}
+									loading || isCoachesLoading
+										? "opacity-50 cursor-not-allowed"
+										: "hover:bg-blue-700"
+								}`}
+							>
+								{loading ? "Confirming..." : "Confirm"}
 							</button>
 						</form>
 					</div>

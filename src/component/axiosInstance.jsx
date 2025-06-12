@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const backendBaseUrl = "https://admin.birdboxtools.com";
+// export const backendBaseUrl = "https://admin.birdboxtools.com";
+export const backendBaseUrl = "http://192.168.10.124:3300";
 
 const axiosInstance = axios.create({
 	baseURL: `${backendBaseUrl}/api/v1`,

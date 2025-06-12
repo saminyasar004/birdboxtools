@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react';
-import Sidebar from '../component/Sidebar';
-import { FaPencilAlt, FaTrashAlt } from 'react-icons/fa';
-import { FaPlus, FaSearch, FaSortAmountDown } from 'react-icons/fa';
-import ParticipantsTable from './ParticipantsTable';
-import MailingSystem from './MailingSystem';
-import Assessment from './Assessment';
-import ScheduleSeminarModal from '../component/ScheduleSeminarModal';
-import { useCustomState } from '../component/StateContext';
-import axiosInstance from '../component/axiosInstance';
-import EditSeminar from '../component/EditSeminar';
+import { useEffect, useState } from "react";
+import Sidebar from "../component/Sidebar";
+import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
+import { FaPlus, FaSearch, FaSortAmountDown } from "react-icons/fa";
+import ParticipantsTable from "./ParticipantsTable";
+import MailingSystem from "./MailingSystem";
+import Assessment from "./Assessment";
+import ScheduleSeminarModal from "../component/ScheduleSeminarModal";
+import { useCustomState } from "../component/StateContext";
+import axiosInstance from "../component/axiosInstance";
+import EditSeminar from "../component/EditSeminar";
 
 const Home = () => {
 	const [seminarData, setSeminarData] = useState([]);
 	const [filteredSeminarData, setFilteredSeminarData] = useState([]); // New state for filtered seminars
 	const [item, setItem] = useState({});
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState('');
-	const [searchQuery, setSearchQuery] = useState(''); // New state for search input
+	const [error, setError] = useState("");
+	const [searchQuery, setSearchQuery] = useState(""); // New state for search input
 
 	useEffect(() => {
 		fetchSeminarData();
@@ -25,16 +25,18 @@ const Home = () => {
 	const fetchSeminarData = async () => {
 		setLoading(true);
 		try {
-			const response = await axiosInstance.get('/dashboard/seminars/list/');
+			const response = await axiosInstance.get(
+				"/dashboard/seminars/list/"
+			);
 
 			if (response.status === 200) {
 				setSeminarData(response.data);
 				setFilteredSeminarData(response.data); // Initialize filtered list
 			} else {
-				setError('Failed to load seminars.');
+				setError("Failed to load seminars.");
 			}
 		} catch (error) {
-			setError('Failed to load seminars. Please try again.');
+			setError("Failed to load seminars. Please try again.");
 		} finally {
 			setLoading(false);
 		}
@@ -44,19 +46,22 @@ const Home = () => {
 	useEffect(() => {
 		const filtered = seminarData.filter((seminar) =>
 			[seminar.id?.toString(), seminar.location].some((field) =>
-				field?.toString().toLowerCase().includes(searchQuery.toLowerCase())
+				field
+					?.toString()
+					.toLowerCase()
+					.includes(searchQuery.toLowerCase())
 			)
 		);
 		setFilteredSeminarData(filtered);
 	}, [seminarData, searchQuery]);
 
 	const handleDelete = async (id) => {
-		if (!window.confirm('Are you sure you want to delete this seminar?')) {
+		if (!window.confirm("Are you sure you want to delete this seminar?")) {
 			return;
 		}
 
 		setLoading(true);
-		setError('');
+		setError("");
 
 		try {
 			const response = await axiosInstance.delete(
@@ -70,12 +75,12 @@ const Home = () => {
 				setSeminarData(updatedSeminars);
 				setFilteredSeminarData(updatedSeminars); // Update filtered list
 			} else {
-				throw new Error('Failed to delete seminar');
+				throw new Error("Failed to delete seminar");
 			}
 		} catch (err) {
 			setError(
 				err.response?.data?.message ||
-					'Failed to delete seminar. Please try again.'
+					"Failed to delete seminar. Please try again."
 			);
 		} finally {
 			setLoading(false);
@@ -93,7 +98,7 @@ const Home = () => {
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [isEditSeminar, setIsEditSeminar] = useState(false);
-	const role = localStorage.getItem('role');
+	const role = localStorage.getItem("role");
 
 	// Handle search input change
 	const handleSearchChange = (e) => {
@@ -107,15 +112,14 @@ const Home = () => {
 					<div className="text-t_color flex justify-between items-center p-4">
 						<div className="flex items-center space-x-4">
 							<h1 className="text-xl">Seminar list</h1>
-							{role === 'admin' && (
-								<button
-									onClick={() => setIsOpen(true)}
-									className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-3 px-4 rounded inline-flex items-center"
-									disabled={loading}>
-									<FaPlus className="w-4 h-4 mr-2" />
-									Add
-								</button>
-							)}
+							<button
+								onClick={() => setIsOpen(true)}
+								className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-3 px-4 rounded inline-flex items-center"
+								disabled={loading}
+							>
+								<FaPlus className="w-4 h-4 mr-2" />
+								Add
+							</button>
 						</div>
 						<div className="flex items-center space-x-4">
 							<div className="flex bg-[#28282A] p-2 rounded px-4 items-center gap-4">
@@ -131,7 +135,9 @@ const Home = () => {
 					</div>
 					<div className="rounded-lg overflow-x-auto">
 						{error && (
-							<div className="text-red-500 text-center p-4">{error}</div>
+							<div className="text-red-500 text-center p-4">
+								{error}
+							</div>
 						)}
 						{loading ? (
 							<div className="text-center p-4 text-gray-500">
@@ -143,56 +149,97 @@ const Home = () => {
 									<thead>
 										<tr className="bg-[#28282A]">
 											<th className="px-6 py-4">No</th>
-											<th className="px-6 py-4">Location</th>
+											<th className="px-6 py-4">
+												Location
+											</th>
 											<th className="px-6 py-4">Date</th>
-											<th className="px-6 py-4">Lead Coach</th>
-											<th className="px-6 py-4">Participants</th>
-											<th className="px-6 py-4">Status</th>
-											{role === 'admin' && (
-												<th className="px-6 py-4">Action</th>
+											<th className="px-6 py-4">
+												Lead Coach
+											</th>
+											<th className="px-6 py-4">
+												Participants
+											</th>
+											<th className="px-6 py-4">
+												Status
+											</th>
+											{role === "admin" && (
+												<th className="px-6 py-4">
+													Action
+												</th>
 											)}
 										</tr>
 									</thead>
 									<tbody>
-										{filteredSeminarData.map((item, index) => (
-											<tr
-												key={item.id}
-												className="border-t border-gray-700 cursor-pointer"
-												onClick={() => {
-													setParticipant(true);
-													setSeminar(false);
-													setItem(item);
-												}}>
-												<td className="px-6 py-4">{item.id}</td>
-												<td className="px-6 py-4">{item.location}</td>
-												<td className="px-6 py-4">{item.date}</td>
-												<td className="px-6 py-4">{item?.coach?.name}</td>
-												<td className="px-6 py-4">{item.participants_count}</td>
-												<td className="px-6 py-4">{item.status}</td>
-												{role === 'admin' && (
-													<td className="px-6 py-4 flex items-center space-x-4">
-														<button
-															className="text-blue-500 hover:text-blue-600"
-															onClick={(e) => {
-																e.stopPropagation();
-																setIsEditSeminar(true);
-																setItem(item);
-															}}>
-															<FaPencilAlt className="h-5 w-5" />
-														</button>
-														<button
-															onClick={(e) => {
-																e.stopPropagation();
-																handleDelete(item.id);
-															}}
-															className="text-red-500 hover:text-red-600"
-															disabled={loading}>
-															<FaTrashAlt className="h-5 w-5" />
-														</button>
+										{filteredSeminarData.map(
+											(item, index) => (
+												<tr
+													key={item.id}
+													className="border-t border-gray-700 cursor-pointer"
+													onClick={() => {
+														setParticipant(true);
+														setSeminar(false);
+														setItem(item);
+													}}
+												>
+													<td className="px-6 py-4">
+														{item.id}
 													</td>
-												)}
-											</tr>
-										))}
+													<td className="px-6 py-4">
+														{item.location}
+													</td>
+													<td className="px-6 py-4">
+														{item.date}
+													</td>
+													<td className="px-6 py-4">
+														{item?.coach?.name}
+													</td>
+													<td className="px-6 py-4">
+														{
+															item.participants_count
+														}
+													</td>
+													<td className="px-6 py-4">
+														{item.status}
+													</td>
+													{role === "admin" && (
+														<td className="px-6 py-4 flex items-center space-x-4">
+															<button
+																className="text-blue-500 hover:text-blue-600"
+																onClick={(
+																	e
+																) => {
+																	e.stopPropagation();
+																	setIsEditSeminar(
+																		true
+																	);
+																	setItem(
+																		item
+																	);
+																}}
+															>
+																<FaPencilAlt className="h-5 w-5" />
+															</button>
+															<button
+																onClick={(
+																	e
+																) => {
+																	e.stopPropagation();
+																	handleDelete(
+																		item.id
+																	);
+																}}
+																className="text-red-500 hover:text-red-600"
+																disabled={
+																	loading
+																}
+															>
+																<FaTrashAlt className="h-5 w-5" />
+															</button>
+														</td>
+													)}
+												</tr>
+											)
+										)}
 									</tbody>
 								</table>
 							</div>
@@ -202,7 +249,10 @@ const Home = () => {
 			)}
 
 			{participant && (
-				<ParticipantsTable item={item} fetchSeminarData={fetchSeminarData} />
+				<ParticipantsTable
+					item={item}
+					fetchSeminarData={fetchSeminarData}
+				/>
 			)}
 
 			{assessment && <Assessment item={item} />}

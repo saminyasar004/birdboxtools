@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
 import { IoArrowForward } from "react-icons/io5";
 import { MdArrowBack } from "react-icons/md";
-import { PiDotsThreeVerticalBold } from "react-icons/pi";
 import SeminarHeader from "./SeminarHeader";
 import axiosInstance from "../component/axiosInstance";
 
