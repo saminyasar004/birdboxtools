@@ -952,9 +952,9 @@ const Assessmendivetail = ({
 			return;
 		}
 
-		if (!validateForm()) {
-			return;
-		}
+		// if (!validateForm()) {
+		// 	return;
+		// }
 		setIsLoading(true);
 		setError("");
 		const assessmentData = constructAssessmentData();
