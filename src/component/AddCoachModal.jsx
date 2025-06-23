@@ -6,7 +6,8 @@ const AddCoachModal = ({ isOpen, setIsOpen, fetchUser }) => {
 		name: '',
 		phone: '',
 		email: '',
-		password: 'defaultCoachPass123', // You might want to generate this or let admin set it
+		password: '', // You might want to generate this or let admin set it
+		isAllowtoCreateSeminar: false,
 	});
 	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
@@ -44,13 +45,22 @@ const AddCoachModal = ({ isOpen, setIsOpen, fetchUser }) => {
 				phone: formData.phone,
 				email: formData.email,
 				password: formData.password,
+				create_seminar: formData.isAllowtoCreateSeminar
 			});
 			if (response.status === 201) {
 				alert('Coach added successfully');
 				setIsOpen(false); // Close modal on success
 				fetchUser();
+				setFormData({
+					name: '',
+					phone: '',
+					email: '',
+					password: '',
+					isAllowtoCreateSeminar: false,
+				})
 			}
 		} catch (err) {
+			console.log(err)
 			setError(
 				err.response?.data?.email || 'Failed to add coach. Please try again.'
 			);
@@ -84,7 +94,7 @@ const AddCoachModal = ({ isOpen, setIsOpen, fetchUser }) => {
 
 						<form onSubmit={handleSubmit}>
 							<div className="mb-4">
-								<label className="block text-sm font-bold text-[#BDC5DB] mb-2">
+								<label htmlFor="name" className="block text-sm font-bold text-[#BDC5DB] mb-2 cursor-pointer">
 									Name
 								</label>
 								<input
@@ -99,7 +109,7 @@ const AddCoachModal = ({ isOpen, setIsOpen, fetchUser }) => {
 							</div>
 
 							<div className="mb-4">
-								<label className="block text-sm font-bold text-[#BDC5DB] mb-2">
+								<label htmlFor="phone" className="block text-sm font-bold text-[#BDC5DB] mb-2 cursor-pointer">
 									Mobile number
 								</label>
 								<input
@@ -114,7 +124,7 @@ const AddCoachModal = ({ isOpen, setIsOpen, fetchUser }) => {
 							</div>
 
 							<div className="mb-4">
-								<label className="block text-sm font-bold text-[#BDC5DB] mb-2">
+								<label htmlFor="email" className="block text-sm font-bold text-[#BDC5DB] mb-2 cursor-pointer">
 									Email
 								</label>
 								<input
@@ -126,6 +136,36 @@ const AddCoachModal = ({ isOpen, setIsOpen, fetchUser }) => {
 									className="w-full p-2 bg-gray-800 rounded border border-gray-700 text-white"
 									required
 								/>
+							</div>
+
+							<div className="mb-4">
+								<label className="block text-sm font-bold text-[#BDC5DB] mb-2 cursor-pointer">
+									Do you want to give access to add seminars?
+								</label>
+								<div className="flex items-center space-x-6">
+									<label className="flex items-center">
+									<input onChange={(e) => {
+										if(e.target.checked) {
+											setFormData({
+												...formData,
+												isAllowtoCreateSeminar: true,
+											})
+										}
+									}} type="radio" name="seminarAccess" value="yes" className="mr-2 text-blue-600 focus:ring-blue-500" />
+									<span className="text-sm text-white">Yes</span>
+									</label>
+									<label className="flex items-center">
+									<input onChange={(e) => {
+										if(e.target.checked) {
+											setFormData({
+												...formData,
+												isAllowtoCreateSeminar: false,
+											})
+										}
+									}} type="radio" name="seminarAccess" value="no" className="mr-2 text-blue-600 focus:ring-blue-500" />
+									<span className="text-sm text-white">No</span>
+									</label>
+								</div>
 							</div>
 
 							<button

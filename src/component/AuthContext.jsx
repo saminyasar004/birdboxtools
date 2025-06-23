@@ -14,12 +14,13 @@ export const AuthProvider = ({ children }) => {
 	});
 
 	// Login function
-	const login = async (email, token, resfresh_token) => {
+	const login = async (email, token, resfresh_token, create_seminar) => {
 		try {
 			setAuth({ token, email });
 			localStorage.setItem("authToken", token);
 			localStorage.setItem("resfresh_token", resfresh_token);
 			localStorage.setItem("email", email);
+			localStorage.setItem("create_seminar", create_seminar);
 
 			const response = await axiosInstance.get("/accounts/profile/");
 			const data = response.data;

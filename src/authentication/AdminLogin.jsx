@@ -55,6 +55,7 @@ const AdminLogin = () => {
 					formData.email,
 					response.data.access_token,
 					response.data.refresh_token
+					,response.data.create_seminar
 				);
 				navigate("/home"); // Redirect to home page on success
 				localStorage.setItem("role", "admin");
