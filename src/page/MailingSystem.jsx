@@ -33,6 +33,7 @@ const MailingSystem = ({ item }) => {
 				}
 				setLoading(false);
 			} catch (err) {
+				console.log(err)
 				setError("Failed to fetch participants");
 				setLoading(false);
 			}
@@ -40,6 +41,14 @@ const MailingSystem = ({ item }) => {
 
 		fetchParticipants();
 	}, [item.id]);
+
+	useEffect(() => {
+		if(selectedParticipant?.email_body_two) {
+			setAssessmentDay("two");
+		} else {
+			setAssessmentDay("one");
+		}
+	}, [selectedParticipant])
 
 	// Handle outside click to close dropdown
 	useEffect(() => {
@@ -229,7 +238,7 @@ const MailingSystem = ({ item }) => {
 							</tr>
 						</thead>
 					</table>
-					<div className="flex items-center gap-2">
+					{/* <div className="flex items-center gap-2">
 						<p className="text-gray-400">Select Day:</p>
 						<select
 							className="bg-[#1E1E1F] text-white p-2 rounded"
@@ -242,7 +251,7 @@ const MailingSystem = ({ item }) => {
 							<option value="one">Assessment 1</option>
 							<option value="two">Assessment 2</option>
 						</select>
-					</div>
+					</div> */}
 					<div className="flex items-center px-5 mr-4 rounded-md py-3 bg-[#1C1C1D]">
 						<input
 							type="text"
