@@ -51,7 +51,8 @@ const Login = () => {
 				login(
 					formData.email,
 					response.data.access_token,
-					response.data.refresh_token
+					response.data.refresh_token,
+					response.data.create_seminar
 				);
 
 				const userRole =

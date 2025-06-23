@@ -62,7 +62,7 @@ const ActivateEmail = () => {
 
 			console.log('OTP verified:', response.data);
 			if (response.status === 200) {
-				login(email, response.data.access_token, response.data.refresh_token);
+				login(email, response.data.access_token, response.data.refresh_token, response.data.create_seminar);
 				navigate('/home'); // Redirect to home page on success
 			}
 		} catch (err) {

@@ -99,6 +99,8 @@ const Home = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isEditSeminar, setIsEditSeminar] = useState(false);
 	const role = localStorage.getItem("role");
+	const create_seminar = localStorage.getItem("create_seminar");
+
 
 	// Handle search input change
 	const handleSearchChange = (e) => {
@@ -112,7 +114,8 @@ const Home = () => {
 					<div className="text-t_color flex justify-between items-center p-4">
 						<div className="flex items-center space-x-4">
 							<h1 className="text-xl">Seminar list</h1>
-							<button
+							{create_seminar === "true" && (
+								<button
 								onClick={() => setIsOpen(true)}
 								className="bg-[#092147] hover:bg-blue-700 text-white font-bold py-3 px-4 rounded inline-flex items-center"
 								disabled={loading}
@@ -120,6 +123,7 @@ const Home = () => {
 								<FaPlus className="w-4 h-4 mr-2" />
 								Add
 							</button>
+							)}
 						</div>
 						<div className="flex items-center space-x-4">
 							<div className="flex bg-[#28282A] p-2 rounded px-4 items-center gap-4">
